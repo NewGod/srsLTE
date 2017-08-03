@@ -38,6 +38,11 @@ if(RF_FOUND)
     list(APPEND SOURCES_RF rf_blade_imp.c)
   endif (BLADERF_FOUND)
 
+  if (YUNSDR_FOUND)
+    add_definitions(-DENABLE_YUNSDR)
+    list(APPEND SOURCES_RF rf_yunsdr_imp.c yunsdr_api.c)
+  endif (YUNSDR_FOUND)
+
   if (SOAPYSDR_FOUND)
     add_definitions(-DENABLE_SOAPYSDR)
     list(APPEND SOURCES_RF rf_soapy_imp.c)
@@ -58,6 +63,10 @@ if(RF_FOUND)
   if (SOAPYSDR_FOUND)
     target_link_libraries(srslte_rf ${SOAPYSDR_LIBRARIES})
   endif (SOAPYSDR_FOUND)
+
+  if (YUNSDR_FOUND)
+    target_link_libraries(srslte_rf ${YUNSDR_LIBRARIES})
+  endif (YUNSDR_FOUND)
 
 
   INSTALL(TARGETS srslte_rf DESTINATION ${LIBRARY_DIR})
