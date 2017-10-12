@@ -216,6 +216,7 @@ static rf_dev_t dev_yunsdr = {
   rf_yunsdr_recv_with_time,
   rf_yunsdr_recv_with_time_multi,
   rf_yunsdr_send_timed,
+  .srslte_rf_send_timed_multi = rf_yunsdr_send_timed_multi,
   rf_yunsdr_set_tx_cal,
   rf_yunsdr_set_rx_cal
 };

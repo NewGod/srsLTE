@@ -105,6 +105,15 @@ SRSLTE_API double rf_yunsdr_set_tx_freq(void *h,
 SRSLTE_API void rf_yunsdr_get_time(void *h, 
                               time_t *secs, 
                               double *frac_secs); 
+SRSLTE_API int rf_yunsdr_send_timed_multi(void *h,
+                              void *data[4],
+                              int nsamples,
+                              time_t secs,
+                              double frac_secs,
+                              bool has_time_spec,
+                              bool blocking,
+                              bool is_start_of_burst,
+                              bool is_end_of_burst);
 
 SRSLTE_API int  rf_yunsdr_send_timed(void *h, 
                                   void *data, 

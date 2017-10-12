@@ -36,7 +36,7 @@
 
 #include "yunsdr_api.h"
 
-#define DEFAULT_SAMPLES_COUNT (5760)
+#define DEFAULT_SAMPLES_COUNT (5760*2)
 #define CONVERT_BUFFER_SIZE 240*1024
 
 typedef struct {
@@ -104,6 +104,7 @@ void rf_yunsdr_set_rx_cal(void *h, srslte_rf_cal_t *cal)
 
 int rf_yunsdr_start_rx_stream(void *h)
 {
+#if 1
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
     if (yunsdr_enable_rx(handler->dev, DEFAULT_SAMPLES_COUNT*4 + 16, 1, 1) < 0) {
         fprintf(stderr,"Failed to enable RX module\n");
@@ -114,7 +115,7 @@ int rf_yunsdr_start_rx_stream(void *h)
     usleep(5000);
     yunsdr_enable_timestamp(handler->dev);
     handler->timestamp_en = 1;
-
+#endif
     return SRSLTE_SUCCESS;
 }
 
@@ -166,7 +167,7 @@ float rf_yunsdr_get_rssi(void *h)
 }
 
 //TODO: add multi-channel support
-int rf_yunsdr_open_multi(char *args, void **h, uint32_t nof_rx_antennas)
+int rf_yunsdr_open_multi(char *args, void **h, uint32_t nof_channels)
 {
     // create handler
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) malloc(sizeof(rf_yunsdr_handler_t));
@@ -186,7 +187,7 @@ int rf_yunsdr_open_multi(char *args, void **h, uint32_t nof_rx_antennas)
     printf("[yunsdr] init dev ...\n");
     yunsdr_set_ref_clock (handler->dev, INTERNAL_REFERENCE);
     yunsdr_set_vco_select (handler->dev, AUXDAC1);
-    yunsdr_set_auxdac (handler->dev, 1600);
+    yunsdr_set_auxdac (handler->dev, 1300);
     //yunsdr_set_adf4001 (handler->dev, (26<<16)|10);
     yunsdr_set_duplex_select (handler->dev, FDD);
     yunsdr_set_trx_select (handler->dev, TX);
@@ -387,6 +388,19 @@ int rf_yunsdr_recv_with_time(void *h,
     return rf_yunsdr_recv_with_time_multi(h, &data, nsamples, blocking, secs, frac_secs);
 }
 
+int rf_yunsdr_send_timed_multi(void *h,
+                     void *data[4],
+                     int nsamples,
+                     time_t secs,
+                     double frac_secs,                      
+                     bool has_time_spec,
+                     bool blocking,
+                     bool is_start_of_burst,
+                     bool is_end_of_burst)
+{
+  return rf_yunsdr_send_timed(h, data[0], nsamples, secs, frac_secs, has_time_spec, blocking, is_start_of_burst, is_end_of_burst);
+}
+
 
 int rf_yunsdr_send_timed(void *h,
         void *data,
@@ -413,10 +427,13 @@ int rf_yunsdr_send_timed(void *h,
     //printf("TX: sec:%u, frac_secs:%f\n", (uint64_t)secs, frac_secs);
     //printf("tx_nsamples:%u, timestamp:%llu\n", nsamples, timestamp);
     if(handler->timestamp_en) {
-        //int ret = yunsdr_write_submit(handler->dev, (uint8_t *)handler->tx_buffer, nsamples*4, 1, (uint64_t)timestamp);
-        int ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer, nsamples * 4, 1, (uint64_t)timestamp);
+        int ret = yunsdr_write_submit(handler->dev, (uint8_t *)handler->tx_buffer, nsamples*4, 1, (uint64_t)timestamp);
+        //int ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer, nsamples * 2, 1, (uint64_t)timestamp);
         if(ret < 0)
             return SRSLTE_ERROR;
+        //ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer+DEFAULT_SAMPLES_COUNT*2, nsamples * 2, 1, (uint64_t)timestamp+DEFAULT_SAMPLES_COUNT/2);
+        //if(ret < 0)
+        //    return SRSLTE_ERROR;
     } else {
         fprintf(stderr, "TX failed: timestamp in hardware is not enabled;\n");
         return SRSLTE_ERROR;
