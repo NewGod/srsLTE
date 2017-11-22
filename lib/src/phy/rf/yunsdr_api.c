@@ -4,6 +4,7 @@
  *  Created on: 2015Äê9ÔÂ9ÈÕ
  *      Author: Eric
  */
+#define _GNU_SOURCE 1
 #include <sched.h>
 #include <sys/ioctl.h>
 
@@ -16,11 +17,13 @@
 #define MAX_TX_BUFFSIZE (32*1024*1024)
 #define MAX_RX_BUFFSIZE (32*1024*1024)
 
+#define MAX_TX_FRAMESIZE (15360)
+
 #define MIN(x, y)  ((x < y)?x:y)
 
 struct trx_thread tx_priv;
 void *thread_tx_func(void *arg);
-#define MAX_RB_SIZE (2<<15)
+#define MAX_RB_SIZE (2<<10)
 struct ringbuffer {
     void *psamples[MAX_RB_SIZE];
     volatile uint32_t front;
@@ -50,11 +53,10 @@ int32_t yunsdr_init_meta(YUNSDR_META **meta)
 {
     int32_t ret;
 
-    *meta = (YUNSDR_META *)calloc(1, MAX_TX_BUFFSIZE + sizeof(YUNSDR_META));
-    if (!meta) {
-        ret = -1;
-    } else {
-        ret = 0;
+    ret = posix_memalign((void **)meta, 16, MAX_TX_BUFFSIZE);
+    if(ret) {
+        printf("Failed to alloc memory\n");
+        return -1;
     }
 
     return ret;
@@ -67,7 +69,6 @@ void yunsdr_deinit_meta(YUNSDR_META *meta)
 
 YUNSDR_DESCRIPTOR *yunsdr_open_device(uint8_t id)
 {
-    int ret;
     YUNSDR_DESCRIPTOR *yunsdr;
     yunsdr = (YUNSDR_DESCRIPTOR *)calloc(1, sizeof(
                 YUNSDR_DESCRIPTOR));
@@ -92,15 +93,6 @@ YUNSDR_DESCRIPTOR *yunsdr_open_device(uint8_t id)
     // Reset
     fpga_reset(yunsdr->fpga);
 
-    tx_rb.front = tx_rb.rear = 0;
-    int i;
-    for(i = 0; i < MAX_RB_SIZE; i++) {
-        tx_rb.psamples[i] = NULL;
-    }
-    ret = pthread_create(&tx_priv.trx, NULL, thread_tx_func, yunsdr);
-    if(ret != 0)
-        perror("pthread_create");
-
     return yunsdr;
 
 err_open_device:
@@ -117,8 +109,6 @@ err_init_tx_meta:
 
 int32_t yunsdr_close_device(YUNSDR_DESCRIPTOR *yunsdr)
 {
-    tx_priv.end = 0;
-    pthread_cancel(tx_priv.trx);
     yunsdr_disable_timestamp(yunsdr);
     fpga_close(yunsdr->fpga);
     yunsdr_deinit_meta(yunsdr->tx_meta);
@@ -559,6 +549,54 @@ int32_t yunsdr_read_timestamp (YUNSDR_DESCRIPTOR *yunsdr,
     return 0;
 }
 
+int32_t __yunsdr_create_tx_thread(YUNSDR_DESCRIPTOR *yunsdr, int32_t frame_size)
+{
+    int i;
+    int32_t ret;
+    void *psamples;
+
+    pthread_attr_t thread_attr;
+    struct sched_param thread_param;
+    int max_priority;
+
+    pthread_attr_init(&thread_attr);
+
+    tx_rb.front = tx_rb.rear = 0;
+    for(i = 0; i < MAX_RB_SIZE; i++) {
+        ret = posix_memalign((void **)&psamples, 16, 
+                frame_size + sizeof(YUNSDR_META));
+        if(ret) {
+            printf("Failed to alloc memory\n");
+            ret = -1;
+            break;
+        }
+        tx_rb.psamples[i] = psamples;
+    }
+#if defined(_POSIX_THREAD_PRIORITY_SCHEDULING)
+    ret = pthread_attr_setschedpolicy(&thread_attr, SCHED_FIFO);
+    if(ret != 0)
+        printf("Unable to set SCHED_FIFO policy.\n");
+    else{
+        max_priority = sched_get_priority_max(SCHED_FIFO);
+        if(max_priority == -1)
+            printf("Get SCHED_FIFO max priority");
+        thread_param.sched_priority = max_priority;
+        pthread_attr_setschedparam(&thread_attr, &thread_param);
+        pthread_attr_setinheritsched(&thread_attr, PTHREAD_EXPLICIT_SCHED);
+    }
+#else
+    printf("Priority scheduling not supported\n");
+#endif
+    ret = pthread_create(&tx_priv.trx, &thread_attr, thread_tx_func, yunsdr);
+    if(ret != 0) {
+        perror("pthread_create");
+        return -1;
+    }
+
+    return 0;
+}
+
+
 int32_t yunsdr_enable_rx(YUNSDR_DESCRIPTOR *yunsdr, uint32_t nbyte_per_packet,
         uint8_t ch, uint8_t enable)
 {
@@ -591,7 +629,18 @@ int32_t yunsdr_enable_rx(YUNSDR_DESCRIPTOR *yunsdr, uint32_t nbyte_per_packet,
 int32_t yunsdr_enable_tx(YUNSDR_DESCRIPTOR *yunsdr, uint32_t nbyte_per_packet,
         uint8_t ch, uint8_t enable)
 {
-    return 0;
+    int32_t i, ret;
+    if(enable)
+        ret = __yunsdr_create_tx_thread(yunsdr, nbyte_per_packet);
+    else {
+        tx_priv.end = 0;
+        pthread_cancel(tx_priv.trx);
+        pthread_join(tx_priv.trx, NULL);
+        for(i = 0; i < MAX_RB_SIZE; ++i)
+            free(tx_rb.psamples[i]);
+    }
+
+    return ret;
 }
 
 int32_t yunsdr_read_samples(YUNSDR_DESCRIPTOR *yunsdr,
@@ -647,7 +696,6 @@ int32_t yunsdr_write_samples(YUNSDR_DESCRIPTOR *yunsdr,
         ret = -EIO;
     }
 
-    //debug(DEBUG_WARN, "fpga_send = %u, nsample = %u\n", ret, yunsdr->tx_meta->nsamples);
     return nbyte;
 }
 
@@ -656,14 +704,16 @@ int32_t yunsdr_write_submit(YUNSDR_DESCRIPTOR *yunsdr,
 {
     uint8_t timestamp_en;
     YUNSDR_META *tx_meta;
-    uint32_t dma_len;
+    void *psamples = NULL;
 
-    dma_len = (nbyte + sizeof(YUNSDR_META)) / 4; //sizeof word
-    if(dma_len % 16 != 0) {
-        dma_len += (16 - dma_len%16);
+    if((tx_rb.rear + 1) % MAX_RB_SIZE != tx_rb.front) {
+        psamples = tx_rb.psamples[tx_rb.rear];
+        tx_rb.rear = (tx_rb.rear + 1) % MAX_RB_SIZE;
+    } else {
+        printf("full ...\n");
+        return 0;
     }
 
-    void *psamples = calloc(1, dma_len * 4);
     tx_meta = (YUNSDR_META *)psamples;
     if(timestamp > 0)
         timestamp_en = 1;
@@ -678,12 +728,6 @@ int32_t yunsdr_write_submit(YUNSDR_DESCRIPTOR *yunsdr,
     tx_meta->nsamples = nbyte / 4;
 
     memcpy(tx_meta->payload, buffer, nbyte);
-
-    if((tx_rb.rear + 1) % MAX_RB_SIZE != tx_rb.front) {
-        tx_rb.psamples[tx_rb.rear] = psamples;
-        tx_rb.rear = (tx_rb.rear + 1) % MAX_RB_SIZE;
-    } else
-        printf("full ...\n");
 
     return nbyte;
 }
@@ -700,7 +744,6 @@ static int32_t yunsdr_write_stream(YUNSDR_DESCRIPTOR *yunsdr, void *buffer)
 
     nbyte = tx_meta->nsamples * 4;
 
-    //printf("%s:%d\n", __func__, __LINE__);
     ret = fpga_send(yunsdr->fpga, ch, buffer, 
             (nbyte + sizeof(YUNSDR_META)) / 4, 0, 1, 25000);
     if(ret < 0){
@@ -708,33 +751,21 @@ static int32_t yunsdr_write_stream(YUNSDR_DESCRIPTOR *yunsdr, void *buffer)
         ret = -EIO;
         return ret;
     }
-    //printf("%s:%d\n", __func__, __LINE__);
     return nbyte;
 }
 
 void *thread_tx_func(void *arg)
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
-    CPU_SET(4, &set);
-    if(pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &set) < 0)
-        perror("pthread_setaffinity_np");
-    sem_init(&tx_priv.start, 0, 0);
-    sem_init(&tx_priv.finish, 0, 0);
     tx_priv.end = 1;
 
     while(tx_priv.end) {
         if(tx_rb.front == tx_rb.rear) { 
-            // sem_wait(&tx_priv.start);
-            sleep(0);
+            pthread_yield();
         } else {
             if(tx_rb.psamples[tx_rb.front] != NULL) {
                 yunsdr_write_stream((YUNSDR_DESCRIPTOR *)arg,
                         tx_rb.psamples[tx_rb.front]);
-                free(tx_rb.psamples[tx_rb.front]);
-                tx_rb.psamples[tx_rb.front] = NULL;
             }
-            //sem_post(&tx_priv.finish);
             tx_rb.front = (tx_rb.front + 1) % MAX_RB_SIZE;
         }
     }

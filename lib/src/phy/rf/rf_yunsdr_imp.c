@@ -431,9 +431,6 @@ int rf_yunsdr_send_timed(void *h,
         //int ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer, nsamples * 2, 1, (uint64_t)timestamp);
         if(ret < 0)
             return SRSLTE_ERROR;
-        //ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer+DEFAULT_SAMPLES_COUNT*2, nsamples * 2, 1, (uint64_t)timestamp+DEFAULT_SAMPLES_COUNT/2);
-        //if(ret < 0)
-        //    return SRSLTE_ERROR;
     } else {
         fprintf(stderr, "TX failed: timestamp in hardware is not enabled;\n");
         return SRSLTE_ERROR;
