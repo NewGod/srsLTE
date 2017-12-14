@@ -44,6 +44,7 @@ typedef struct {
     double sample_rate;
     int16_t rx_buffer[CONVERT_BUFFER_SIZE]; 
     int16_t tx_buffer[CONVERT_BUFFER_SIZE]; 
+    uint32_t samples_per_packet;
     uint8_t timestamp_en;
 
 } rf_yunsdr_handler_t;
@@ -104,35 +105,44 @@ void rf_yunsdr_set_rx_cal(void *h, srslte_rf_cal_t *cal)
 
 int rf_yunsdr_start_rx_stream(void *h)
 {
-#if 1
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
-    if (yunsdr_enable_rx(handler->dev, DEFAULT_SAMPLES_COUNT*4 + 16, 1, 1) < 0) {
+
+    yunsdr_disable_timestamp(handler->dev);
+    if (yunsdr_enable_rx(handler->dev, handler->samples_per_packet*4 + 16, 1, 1) < 0) {
         fprintf(stderr,"Failed to enable RX module\n");
         return SRSLTE_ERROR;
+    }
+#if 0
+    if (yunsdr_enable_tx(handler->dev, handler->samples_per_packet*4, 1, 1) < 0) {
+        fprintf(stderr,"Failed to enable TX module\n");
     }else
-        printf("[yunsdr] RX module enabled \n");
-
+        printf("[yunsdr] TX module enabled \n");
+#endif
     usleep(5000);
     yunsdr_enable_timestamp(handler->dev);
     handler->timestamp_en = 1;
-#endif
+
     return SRSLTE_SUCCESS;
 }
 
 int rf_yunsdr_start_tx_stream(void *h)
 {
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
-    if (yunsdr_enable_tx(handler->dev, DEFAULT_SAMPLES_COUNT*4, 1, 1) < 0) {
+#if 0
+    if (yunsdr_enable_tx(handler->dev, handler->samples_per_packet*4, 1, 1) < 0) {
         fprintf(stderr,"Failed to enable TX module\n");
     }else
         printf("[yunsdr] TX module enabled \n");
-
+#endif
     return SRSLTE_SUCCESS;
 }
 
 int rf_yunsdr_stop_rx_stream(void *h)
 {
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
+#if 0
+    yunsdr_enable_tx(handler->dev, 0, 1, 0);
+#endif
     return SRSLTE_SUCCESS;
 }
 
@@ -145,13 +155,7 @@ int rf_yunsdr_stop_tx_stream(void *h)
 
 void rf_yunsdr_flush_buffer(void *h)
 {
-    /* int n;
-       cf_t tmp1[1024];
-       cf_t tmp2[1024];
-       void *data[2] = {tmp1, tmp2};
-       do {
-       n = rf_yunsdr_recv_with_time_multi(h, data, 1024, 0, NULL, NULL);
-       } while (n > 0);*/
+
 }
 
 bool rf_yunsdr_has_rssi(void *h)
@@ -187,10 +191,10 @@ int rf_yunsdr_open_multi(char *args, void **h, uint32_t nof_channels)
     printf("[yunsdr] init dev ...\n");
     yunsdr_set_ref_clock (handler->dev, INTERNAL_REFERENCE);
     yunsdr_set_vco_select (handler->dev, AUXDAC1);
-    yunsdr_set_auxdac (handler->dev, 1300);
+    yunsdr_set_auxdac (handler->dev, 1600);
     //yunsdr_set_adf4001 (handler->dev, (26<<16)|10);
     yunsdr_set_duplex_select (handler->dev, FDD);
-    yunsdr_set_trx_select (handler->dev, TX);
+    yunsdr_set_trx_select (handler->dev, 0);
     if (yunsdr_set_rx_gain_control_mode(handler->dev, RX1_CHANNEL, 0) < 0){
         fprintf(stderr,"Failed to set RX Gain Control Mode\n");
     }else
@@ -225,12 +229,14 @@ bool rf_yunsdr_is_master_clock_dynamic(void *h)
 {
     printf("TODO: implement rf_yunsdr_is_master_clock_dynamic()\n");
     return false;
-    //return true;
 }
 
 double rf_yunsdr_set_rx_srate(void *h, double rate)
 {
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
+
+    if(rate < 2000000)
+        rate = 3840000;
     if (yunsdr_set_rx_sampling_freq(handler->dev, (uint32_t)rate) < 0){
         fprintf(stderr,"Failed to set RX sample rate\n");
         return SRSLTE_ERROR;
@@ -241,6 +247,8 @@ double rf_yunsdr_set_rx_srate(void *h, double rate)
         fprintf(stderr,"Failed to set RX bandwidth\n");
     }else
         printf("[yunsdr] set RX bandwidth to %u\n",(uint32_t)(rate/1.5));
+
+    handler->samples_per_packet = (int)handler->sample_rate/1000;
 
     return rate;
 }
@@ -328,11 +336,13 @@ double rf_yunsdr_set_tx_freq(void *h, double freq)
 }
 
 
-void rf_yunsdr_get_time(void *h, time_t *secs, double *frac_secs) {
+void rf_yunsdr_get_time(void *h, time_t *secs, double *frac_secs) 
+{
 
 }
 
-static void timestamp_to_secs(uint32_t rate, uint64_t timestamp, time_t *secs, double *frac_secs) {
+static void timestamp_to_secs(uint32_t rate, uint64_t timestamp, time_t *secs, double *frac_secs)
+{
     double totalsecs = (double) timestamp/rate;
     time_t secs_i = (time_t) totalsecs;
     if (secs) {
@@ -343,7 +353,8 @@ static void timestamp_to_secs(uint32_t rate, uint64_t timestamp, time_t *secs, d
     }
 }
 
-static void secs_to_timestamps(uint32_t rate, time_t secs, double frac_secs, uint64_t *timestamp) {
+static void secs_to_timestamps(uint32_t rate, time_t secs, double frac_secs, uint64_t *timestamp)
+{
     double totalsecs = (double) secs + frac_secs;
     if (timestamp) {
         *timestamp = rate * totalsecs;
@@ -359,20 +370,49 @@ int  rf_yunsdr_recv_with_time_multi(void *h,
         double *frac_secs)
 {
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
+    float *tab1 = (float *)data[0];
     uint64_t timestamp;
+    YUNSDR_META *rx_meta = handler->dev->rx_meta;
+    int ret = 0;
+    int n = 0;
+    void *psamples = (void *)handler->rx_buffer;
 
     if (2*nsamples > CONVERT_BUFFER_SIZE) {
         fprintf(stderr, "RX failed: nsamples exceeds buffer size (%d>%d)\n", nsamples, CONVERT_BUFFER_SIZE);
         return -1;
     }
+#if 0
     if(yunsdr_read_samples(handler->dev, (uint8_t *)handler->rx_buffer, nsamples * 4, 1, &timestamp) < 0) {
         printf("Failed to read sample\n");
         return SRSLTE_ERROR;
     }
+#else
+    size_t remaining = nsamples;
+        do {
+             size_t rx_samples;
+             if(remaining > handler->samples_per_packet)
+                 rx_samples = handler->samples_per_packet;
+             else
+                 rx_samples = remaining;
+             ret = yunsdr_read_samples(handler->dev, psamples, rx_samples*4, 1, &timestamp);
+             if(ret < 0)
+                 return SRSLTE_ERROR;
+             if(!n) {
+                 timestamp_to_secs(handler->sample_rate, timestamp, secs, frac_secs);
+             }
+             n = n + rx_samples;
+             psamples = psamples + (n * 4);
+             remaining -= rx_samples;
+        } while (remaining > 0);
 
+        if (n != nsamples) {
+            fprintf(stderr, "Couldn't read all samples.\n");
+            return SRSLTE_ERROR;
+        }
+#endif
     //printf("rx_nsamples:%u, timestamp: %llu\n", nsamples, timestamp);
-    timestamp_to_secs(handler->sample_rate, timestamp, secs, frac_secs);
-    srslte_vec_convert_if(handler->rx_buffer, data[0], 32767., 2*nsamples);
+    //timestamp_to_secs(handler->sample_rate, timestamp, secs, frac_secs);
+    srslte_vec_convert_if(handler->rx_buffer, data[0], 16384., 2*nsamples);
     //printf("RX: sec:%u, frac_secs:%f\n", *(uint64_t *)secs, *frac_secs);
 
     return nsamples;
@@ -392,7 +432,7 @@ int rf_yunsdr_send_timed_multi(void *h,
                      void *data[4],
                      int nsamples,
                      time_t secs,
-                     double frac_secs,                      
+                     double frac_secs,
                      bool has_time_spec,
                      bool blocking,
                      bool is_start_of_burst,
@@ -415,25 +455,51 @@ int rf_yunsdr_send_timed(void *h,
     int flags;
     uint64_t timestamp;
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
+    YUNSDR_META *tx_meta = handler->dev->tx_meta;
+    int ret = 0;
+    int n = 0;
+    void *psamples = (void *)handler->tx_buffer;
 
     if (2*nsamples > CONVERT_BUFFER_SIZE) {
         fprintf(stderr, "TX failed: nsamples exceeds buffer size (%d>%d)\n", nsamples, CONVERT_BUFFER_SIZE);
         return -1;
     }
 
-    srslte_vec_convert_fi(data, handler->tx_buffer, 32767., 2*nsamples);
+    srslte_vec_convert_fi(data, handler->tx_buffer, 16384., 2*nsamples);
+    //srslte_vec_convert_fi(data, (int16_t *)tx_meta->payload, 16384., 2*nsamples);
     secs_to_timestamps(handler->sample_rate, secs, frac_secs, &timestamp);
 
     //printf("TX: sec:%u, frac_secs:%f\n", (uint64_t)secs, frac_secs);
     //printf("tx_nsamples:%u, timestamp:%llu\n", nsamples, timestamp);
     if(handler->timestamp_en) {
-        int ret = yunsdr_write_submit(handler->dev, (uint8_t *)handler->tx_buffer, nsamples*4, 1, (uint64_t)timestamp);
-        //int ret = yunsdr_write_samples(handler->dev, (uint8_t *)handler->tx_buffer, nsamples * 2, 1, (uint64_t)timestamp);
-        if(ret < 0)
+        //int ret = yunsdr_write_submit(handler->dev, (uint8_t *)handler->tx_buffer, nsamples*4, 1, (uint64_t)timestamp);
+        //int ret = yunsdr_write_samples(handler->dev, NULL, nsamples*4, 1, (uint64_t)timestamp);
+        //if(ret < 0)
+            //return SRSLTE_ERROR;
+        size_t remaining = nsamples;
+        do {
+             size_t tx_samples;
+             if(remaining > DEFAULT_SAMPLES_COUNT)
+                 tx_samples = DEFAULT_SAMPLES_COUNT;
+             else
+                 tx_samples = remaining;
+             ret = yunsdr_write_samples(handler->dev, psamples, tx_samples*4, 1, (uint64_t)timestamp);
+             if(ret < 0)
+                 return SRSLTE_ERROR;
+             n = n + tx_samples;
+             psamples = psamples + (n * 4);
+             timestamp += tx_samples;
+             remaining -= tx_samples;
+        } while (remaining > 0);
+
+        if (n != nsamples) {
+            fprintf(stderr, "Couldn't write all samples.\n");
             return SRSLTE_ERROR;
+        }
     } else {
         fprintf(stderr, "TX failed: timestamp in hardware is not enabled;\n");
         return SRSLTE_ERROR;
     }
+
     return nsamples;
 }

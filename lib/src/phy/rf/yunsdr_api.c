@@ -661,7 +661,8 @@ int32_t yunsdr_read_samples(YUNSDR_DESCRIPTOR *yunsdr,
 
     *timestamp = ((uint64_t)yunsdr->rx_meta->timestamp_h)<<32 | 
         yunsdr->rx_meta->timestamp_l;
-    memcpy(buffer, (unsigned char *)yunsdr->rx_meta->payload, nbyte);
+    if(buffer != NULL)
+        memcpy(buffer, (unsigned char *)yunsdr->rx_meta->payload, nbyte);
 
     return nbyte;
 }
@@ -687,13 +688,14 @@ int32_t yunsdr_write_samples(YUNSDR_DESCRIPTOR *yunsdr,
 
     yunsdr->tx_meta->nsamples = nbyte / 4;
 
-    memcpy(yunsdr->tx_meta->payload, buffer, nbyte);
+    if(buffer != NULL)
+        memcpy(yunsdr->tx_meta->payload, buffer, nbyte);
 
     ret = fpga_send(yunsdr->fpga, ch, yunsdr->tx_meta, 
-            (nbyte + sizeof(YUNSDR_META))/4, 0, 1, 25000);
+            (nbyte + sizeof(YUNSDR_META))/4, 0, 1, 55000);
     if(ret < 0){
-        printf("%s failed\n", __func__);
-        ret = -EIO;
+        printf("%s failed, nsamples: %d, timestamp: %lld\n", __func__, nbyte/4, timestamp);
+        return -EIO;
     }
 
     return nbyte;
@@ -710,7 +712,7 @@ int32_t yunsdr_write_submit(YUNSDR_DESCRIPTOR *yunsdr,
         psamples = tx_rb.psamples[tx_rb.rear];
         tx_rb.rear = (tx_rb.rear + 1) % MAX_RB_SIZE;
     } else {
-        printf("full ...\n");
+        printf("tx queue full ...\n");
         return 0;
     }
 
@@ -760,7 +762,8 @@ void *thread_tx_func(void *arg)
 
     while(tx_priv.end) {
         if(tx_rb.front == tx_rb.rear) { 
-            pthread_yield();
+            //pthread_yield();
+            continue;
         } else {
             if(tx_rb.psamples[tx_rb.front] != NULL) {
                 yunsdr_write_stream((YUNSDR_DESCRIPTOR *)arg,
