@@ -31,6 +31,7 @@
 
 #include "srsenb/hdr/upper/common_enb.h"
 #include "srsenb/hdr/upper/s1ap_metrics.h"
+#include "srsenb/hdr/upper/x2ap_metrics.h"
 #include "srsenb/hdr/upper/rrc_metrics.h"
 #include "srsue/hdr/upper/gw_metrics.h"
 #include "srslte/upper/rlc_metrics.h"
@@ -52,6 +53,7 @@ typedef struct {
   mac_metrics_t   mac[ENB_METRICS_MAX_USERS];
   rrc_metrics_t   rrc; 
   s1ap_metrics_t  s1ap;
+  x2ap_metrics_t  x2ap;
   bool            running;
 }enb_metrics_t;
 

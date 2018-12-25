@@ -44,6 +44,7 @@ void rrc::init(rrc_cfg_t *cfg_,
                rlc_interface_rrc* rlc_, 
                pdcp_interface_rrc* pdcp_, 
                s1ap_interface_rrc *s1ap_,
+               x2ap_interface_rrc *x2ap_,
                gtpu_interface_rrc* gtpu_,
                srslte::log* log_rrc)
 {
@@ -53,6 +54,7 @@ void rrc::init(rrc_cfg_t *cfg_,
   pdcp    = pdcp_; 
   gtpu    = gtpu_;
   s1ap    = s1ap_; 
+  x2ap    = x2ap_;
   rrc_log = log_rrc;
   cnotifier = NULL; 
 
@@ -506,6 +508,9 @@ void rrc::parse_ul_ccch(uint16_t rnti, byte_buffer_t *pdu)
                       liblte_rrc_ul_ccch_msg_type_text[ul_ccch_msg.msg_type]);
 
     switch (ul_ccch_msg.msg_type) {
+      case LIBLTE_RRC_UL_DCCH_MSG_TYPE_MEASUREMENT_REPORT:
+        handle_measurement_report(&ul_dcch_msg.msg.measurement_report);
+        break;
       case LIBLTE_RRC_UL_CCCH_MSG_TYPE_RRC_CON_REQ:
         if (users.count(rnti)) {
           users[rnti].handle_rrc_con_req(&ul_ccch_msg.msg.rrc_con_req);
@@ -1040,6 +1045,18 @@ void rrc::ue::parse_ul_dcch(uint32_t lcid, byte_buffer_t *pdu)
       parent->rrc_log->error("Msg: %s not supported\n", liblte_rrc_ul_dcch_msg_type_text[ul_dcch_msg.msg_type]); 
       break;
   }
+}
+
+
+void rrc::ue::handle_measurement_report(LIBLTE_RRC_MEASUREMENT_REPORT_STRUCT *msg)
+{
+  if(should_handover())
+    parent->x2ap->handover_start(rnti);
+}
+
+bool rrc::ue::should_handover()
+{
+  return true; // TODO: decide whether to handover, handover now.
 }
 
 void rrc::ue::handle_rrc_con_req(LIBLTE_RRC_CONNECTION_REQUEST_STRUCT *msg)
