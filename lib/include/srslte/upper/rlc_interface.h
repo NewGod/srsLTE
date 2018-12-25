@@ -24,14 +24,23 @@
  *
  */
 
-#ifndef RLC_INTERFACE_H
-#define RLC_INTERFACE_H
+#ifndef SRSLTE_RLC_INTERFACE_H
+#define SRSLTE_RLC_INTERFACE_H
 
 // for custom constructors
-#include "srslte/asn1/liblte_rrc.h"
+#include <srslte/asn1/liblte_rrc.h>
 
 namespace srslte {
 
+typedef enum{
+  RLC_MODE_TM = 0,
+  RLC_MODE_UM,
+  RLC_MODE_AM,
+  RLC_MODE_N_ITEMS,
+}rlc_mode_t;
+static const char rlc_mode_text[RLC_MODE_N_ITEMS][20] = {"Transparent Mode",
+                                                         "Unacknowledged Mode",
+                                                         "Acknowledged Mode"};
 
 typedef enum{
   RLC_UMD_SN_SIZE_5_BITS = 0,
@@ -73,22 +82,29 @@ typedef struct {
   uint32_t          rx_window_size;
   uint32_t          rx_mod;             // Rx counter modulus
   uint32_t          tx_mod;             // Tx counter modulus
+  bool              is_mrb;             // Whether this is a multicast bearer
 } srslte_rlc_um_config_t;
 
 
 class srslte_rlc_config_t
 {
 public:
-  LIBLTE_RRC_RLC_MODE_ENUM  rlc_mode;
+  rlc_mode_t               rlc_mode;
   srslte_rlc_am_config_t    am;
   srslte_rlc_um_config_t    um;
 
+  // Default ctor
+  srslte_rlc_config_t(): rlc_mode(RLC_MODE_TM), am(), um() {};
+
   // Constructor based on liblte's RLC config
-  srslte_rlc_config_t(LIBLTE_RRC_RLC_CONFIG_STRUCT *cnfg) : rlc_mode(cnfg->rlc_mode), am(), um()
+  srslte_rlc_config_t(LIBLTE_RRC_RLC_CONFIG_STRUCT *cnfg) : rlc_mode(RLC_MODE_AM), am(), um()
   {
+    // update RLC mode to internal mode struct
+    rlc_mode = (cnfg->rlc_mode == LIBLTE_RRC_RLC_MODE_AM) ? RLC_MODE_AM : RLC_MODE_UM;
+
     switch(rlc_mode)
     {
-      case LIBLTE_RRC_RLC_MODE_AM:
+      case RLC_MODE_AM:
         am.t_poll_retx       = liblte_rrc_t_poll_retransmit_num[cnfg->ul_am_rlc.t_poll_retx];
         am.poll_pdu          = liblte_rrc_poll_pdu_num[cnfg->ul_am_rlc.poll_pdu];
         am.poll_byte         = liblte_rrc_poll_byte_num[cnfg->ul_am_rlc.poll_byte]*1000; // KB
@@ -96,7 +112,7 @@ public:
         am.t_reordering      = liblte_rrc_t_reordering_num[cnfg->dl_am_rlc.t_reordering];
         am.t_status_prohibit = liblte_rrc_t_status_prohibit_num[cnfg->dl_am_rlc.t_status_prohibit];
         break;
-      case LIBLTE_RRC_RLC_MODE_UM_BI:
+      case RLC_MODE_UM:
         um.t_reordering        = liblte_rrc_t_reordering_num[cnfg->dl_um_bi_rlc.t_reordering];
         um.rx_sn_field_length  = (rlc_umd_sn_size_t)cnfg->dl_um_bi_rlc.sn_field_len;
         um.rx_window_size      = (RLC_UMD_SN_SIZE_5_BITS == um.rx_sn_field_length) ? 16 : 512;
@@ -104,23 +120,28 @@ public:
         um.tx_sn_field_length  = (rlc_umd_sn_size_t)cnfg->ul_um_bi_rlc.sn_field_len;
         um.tx_mod              = (RLC_UMD_SN_SIZE_5_BITS == um.tx_sn_field_length) ? 32 : 1024;
         break;
-      case LIBLTE_RRC_RLC_MODE_UM_UNI_UL:
-        um.tx_sn_field_length  = (rlc_umd_sn_size_t)cnfg->ul_um_uni_rlc.sn_field_len;
-        um.tx_mod              = (RLC_UMD_SN_SIZE_5_BITS == um.tx_sn_field_length) ? 32 : 1024;
-        break;
-      case LIBLTE_RRC_RLC_MODE_UM_UNI_DL:
-        um.t_reordering        = liblte_rrc_t_reordering_num[cnfg->dl_um_uni_rlc.t_reordering];
-        um.rx_sn_field_length  = (rlc_umd_sn_size_t)cnfg->dl_um_uni_rlc.sn_field_len;
-        um.rx_window_size      = (RLC_UMD_SN_SIZE_5_BITS == um.rx_sn_field_length) ? 16 : 512;
-        um.rx_mod              = (RLC_UMD_SN_SIZE_5_BITS == um.rx_sn_field_length) ? 32 : 1024;
-        break;
       default:
         // Handle default case
         break;
     }
   }
+
+  // Factory for MCH
+  static srslte_rlc_config_t mch_config()
+  {
+    srslte_rlc_config_t cfg;
+    cfg.rlc_mode               = RLC_MODE_UM;
+    cfg.um.t_reordering        = 0;
+    cfg.um.rx_sn_field_length  = RLC_UMD_SN_SIZE_5_BITS;
+    cfg.um.rx_window_size      = 0;
+    cfg.um.rx_mod              = 1;
+    cfg.um.tx_sn_field_length  = RLC_UMD_SN_SIZE_5_BITS;
+    cfg.um.tx_mod              = 1;
+    cfg.um.is_mrb              = true;
+    return cfg;
+  }
 };
 
 } // namespace srslte
 
-#endif // RLC_INTERFACE_H
+#endif // SRSLTE_RLC_INTERFACE_H

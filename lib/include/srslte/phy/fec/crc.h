@@ -34,8 +34,8 @@
  *  Reference:    3GPP TS 36.212 version 10.0.0 Release 10 Sec. 5.1.1
  *********************************************************************************************/
 
-#ifndef CRC_
-#define CRC_
+#ifndef SRSLTE_CRC_H
+#define SRSLTE_CRC_H
 
 #include "srslte/config.h"
 #include <stdint.h>
@@ -63,7 +63,21 @@ SRSLTE_API uint32_t srslte_crc_attach(srslte_crc_t *h,
 
 SRSLTE_API uint32_t srslte_crc_attach_byte(srslte_crc_t *h, 
                                            uint8_t *data, 
-                                           int len); 
+                                           int len);
+
+static inline void srslte_crc_checksum_put_byte(srslte_crc_t *h, uint8_t byte) {
+
+  // Polynom order 8, 16, 24 or 32 only.
+  int ord = h->order - 8;
+  uint64_t crc = h->crcinit;
+
+  crc = (crc << 8) ^ h->table[((crc >> (ord)) & 0xff) ^ byte];
+  h->crcinit = crc;
+}
+
+static inline uint64_t srslte_crc_checksum_get(srslte_crc_t *h) {
+  return (h->crcinit  & h->crcmask);
+}
 
 SRSLTE_API uint32_t srslte_crc_checksum_byte(srslte_crc_t *h, 
                                              uint8_t *data, 
@@ -73,4 +87,4 @@ SRSLTE_API uint32_t srslte_crc_checksum(srslte_crc_t *h,
                                         uint8_t *data, 
                                         int len);
 
-#endif
+#endif // SRSLTE_CRC_H

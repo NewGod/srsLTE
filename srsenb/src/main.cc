@@ -30,14 +30,17 @@
 #include <signal.h>
 #include <pthread.h>
 
+#include "srslte/common/config_file.h"
+#include "srslte/common/crash_handler.h"
+
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <boost/program_options.hpp>
 #include <boost/program_options/parsers.hpp>
+#include <srsenb/hdr/enb.h>
 
-#include "enb.h"
-#include "metrics_stdout.h"
+#include "srsenb/hdr/enb.h"
+#include "srsenb/hdr/metrics_stdout.h"
 
 using namespace std;
 using namespace srsenb;
@@ -73,11 +76,15 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
     ("enb.tac",           bpo::value<string>(&tac)->default_value("0x0"),                          "Tracking Area Code")
     ("enb.mcc",           bpo::value<string>(&mcc)->default_value("001"),                          "Mobile Country Code")
     ("enb.mnc",           bpo::value<string>(&mnc)->default_value("01"),                           "Mobile Network Code")
-    ("enb.mme_addr",      bpo::value<string>(&args->enb.s1ap.mme_addr)->default_value("127.0.0.1"),"IP address of MME for S1 connnection")
+    ("enb.mme_addr",      bpo::value<string>(&args->enb.s1ap.mme_addr)->default_value("127.0.0.1"),"IP address of MME for S1 connection")
     ("enb.gtp_bind_addr", bpo::value<string>(&args->enb.s1ap.gtp_bind_addr)->default_value("192.168.3.1"), "Local IP address to bind for GTP connection")
-    ("enb.phy_cell_id",   bpo::value<uint32_t>(&args->enb.pci)->default_value(0),               "Physical Cell Identity (PCI)")
+    ("enb.s1c_bind_addr", bpo::value<string>(&args->enb.s1ap.s1c_bind_addr)->default_value("192.168.3.1"), "Local IP address to bind for S1AP connection")
+    ("enb.phy_cell_id",   bpo::value<uint32_t>(&args->enb.pci)->default_value(0),                  "Physical Cell Identity (PCI)")
     ("enb.n_prb",         bpo::value<uint32_t>(&args->enb.n_prb)->default_value(25),               "Number of PRB")
-    
+    ("enb.nof_ports",     bpo::value<uint32_t>(&args->enb.nof_ports)->default_value(1),            "Number of ports")
+    ("enb.tm",            bpo::value<uint32_t>(&args->enb.transmission_mode)->default_value(1),    "Transmission mode (1-8)")
+    ("enb.p_a",           bpo::value<float>(&args->enb.p_a)->default_value(0.0f),                  "Power allocation rho_a (-6, -4.77, -3, -1.77, 0, 1, 2, 3)")
+
     ("enb_files.sib_config", bpo::value<string>(&args->enb_files.sib_config)->default_value("sib.conf"),      "SIB configuration files")
     ("enb_files.rr_config",  bpo::value<string>(&args->enb_files.rr_config)->default_value("rr.conf"),      "RR configuration files")
     ("enb_files.drb_config", bpo::value<string>(&args->enb_files.drb_config)->default_value("drb.conf"),      "DRB configuration files")
@@ -101,6 +108,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
 
     ("log.phy_level",     bpo::value<string>(&args->log.phy_level),   "PHY log level")
     ("log.phy_hex_limit", bpo::value<int>(&args->log.phy_hex_limit),  "PHY log hex dump limit")
+    ("log.phy_lib_level", bpo::value<string>(&args->log.phy_lib_level)->default_value("none"), "PHY lib log level")
     ("log.mac_level",     bpo::value<string>(&args->log.mac_level),   "MAC log level")
     ("log.mac_hex_limit", bpo::value<int>(&args->log.mac_hex_limit),  "MAC log hex dump limit")
     ("log.rlc_level",     bpo::value<string>(&args->log.rlc_level),   "RLC log level")
@@ -118,6 +126,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
     ("log.all_hex_limit", bpo::value<int>(&args->log.all_hex_limit)->default_value(32),  "ALL log hex dump limit")
 
     ("log.filename",      bpo::value<string>(&args->log.filename)->default_value("/tmp/ue.log"),"Log filename")
+    ("log.file_max_size", bpo::value<int>(&args->log.file_max_size)->default_value(-1), "Maximum file size (in kilobytes). When passed, multiple files are created. Default -1 (single file)")
 
     /* MCS section */
     ("scheduler.pdsch_mcs",
@@ -136,9 +145,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         bpo::value<int>(&args->expert.mac.sched.nof_ctrl_symbols)->default_value(3),
         "Number of control symbols")
 
-    
     /* Expert section */
-
     ("expert.metrics_period_secs",
         bpo::value<float>(&args->expert.metrics_period_secs)->default_value(1.0),
         "Periodicity for metrics in seconds")
@@ -148,10 +155,14 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         "Pregenerate uplink signals after attach. Improves CPU performance.")
 
     ("expert.pusch_max_its",
-        bpo::value<int>(&args->expert.phy.pusch_max_its)->default_value(4),
+        bpo::value<int>(&args->expert.phy.pusch_max_its)->default_value(8),
         "Maximum number of turbo decoder iterations")
 
-    ("expert.tx_amplitude",
+      ("expert.pusch_8bit_decoder",
+       bpo::value<bool>(&args->expert.phy.pusch_8bit_decoder)->default_value(false),
+       "Use 8-bit for LLR representation and turbo decoder trellis computation (Experimental)")
+
+      ("expert.tx_amplitude",
         bpo::value<float>(&args->expert.phy.tx_amplitude)->default_value(0.6),
         "Transmit amplitude factor")
 
@@ -160,7 +171,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         "Number of PHY threads")
 
     ("expert.link_failure_nof_err",
-        bpo::value<int>(&args->expert.mac.link_failure_nof_err)->default_value(50),
+        bpo::value<int>(&args->expert.mac.link_failure_nof_err)->default_value(100),
         "Number of PUSCH failures after which a radio-link failure is triggered")
 
     ("expert.max_prach_offset_us",
@@ -176,15 +187,24 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
         "Chooses the coefficients for the 3-tap channel estimator centered filter.")
 
     ("expert.rrc_inactivity_timer",
-        bpo::value<uint32_t>(&args->expert.rrc_inactivity_timer)->default_value(10000),
+        bpo::value<uint32_t>(&args->expert.rrc_inactivity_timer)->default_value(60000),
         "Inactivity timer in ms")
 
+    ("expert.enable_mbsfn",
+        bpo::value<bool>(&args->expert.enable_mbsfn)->default_value(false),
+        "Enables MBMS in the eNB")
 
-    ("rf_calibration.tx_corr_dc_gain",  bpo::value<float>(&args->rf_cal.tx_corr_dc_gain)->default_value(0.0),  "TX DC offset gain correction")
-    ("rf_calibration.tx_corr_dc_phase", bpo::value<float>(&args->rf_cal.tx_corr_dc_phase)->default_value(0.0), "TX DC offset phase correction")
-    ("rf_calibration.tx_corr_iq_i",     bpo::value<float>(&args->rf_cal.tx_corr_iq_i)->default_value(0.0),     "TX IQ imbalance inphase correction")
-    ("rf_calibration.tx_corr_iq_q",     bpo::value<float>(&args->rf_cal.tx_corr_iq_q)->default_value(0.0),     "TX IQ imbalance quadrature correction")
+    ("expert.print_buffer_state",
+        bpo::value<bool>(&args->expert.print_buffer_state)->default_value(false),
+       "Prints on the console the buffer state every 10 seconds")
 
+    ("expert.m1u_multiaddr",
+     bpo::value<string>(&args->expert.m1u_multiaddr)->default_value("239.255.0.1"),
+     "M1-U Multicast address the eNB joins.")
+
+    ("expert.m1u_if_addr",
+     bpo::value<string>(&args->expert.m1u_if_addr)->default_value("127.0.1.201"),
+     "IP address of the interface the eNB will listen for M1-U traffic.")
   ;
 
   // Positional options - config file location
@@ -212,30 +232,30 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
   }
 
   // print version number and exit
-    // print version number and exit
-    if (vm.count("version")) {
-        cout << "Version " <<
-                srslte_get_version_major() << "." <<
-                srslte_get_version_minor() << "." <<
-                srslte_get_version_patch() << endl;
-        exit(0);
-    }
-
-  // no config file given - print usage and exit
-  if (!vm.count("config_file")) {
-      cout << "Error: Configuration file not provided" << endl;
-      cout << "Usage: " << argv[0] << " [OPTIONS] config_file" << endl << endl;
-      exit(0);
-  } else {
-      cout << "Reading configuration file " << config_file << "..." << endl;
-      ifstream conf(config_file.c_str(), ios::in);
-      if(conf.fail()) {
-        cout << "Failed to read configuration file " << config_file << " - exiting" << endl;
-        exit(1);
-      }
-      bpo::store(bpo::parse_config_file(conf, common), vm);
-      bpo::notify(vm);
+  if (vm.count("version")) {
+    cout << "Version " <<
+         srslte_get_version_major() << "." <<
+         srslte_get_version_minor() << "." <<
+         srslte_get_version_patch() << endl;
+    exit(0);
   }
+
+  // if no config file given, check users home path
+  if (!vm.count("config_file")) {
+    if (!config_exists(config_file, "enb.conf")) {
+      cout << "Failed to read eNB configuration file " << config_file << " - exiting" << endl;
+      exit(1);
+    }
+  }
+
+  cout << "Reading configuration file " << config_file << "..." << endl;
+  ifstream conf(config_file.c_str(), ios::in);
+  if(conf.fail()) {
+    cout << "Failed to read configuration file " << config_file << " - exiting" << endl;
+    exit(1);
+  }
+  bpo::store(bpo::parse_config_file(conf, common), vm);
+  bpo::notify(vm);
 
   // Convert hex strings
   {
@@ -269,6 +289,9 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
   if (vm.count("log.all_level")) {
     if(!vm.count("log.phy_level")) {
       args->log.phy_level = args->log.all_level;
+    }
+    if (!vm.count("log.phy_lib_level")) {
+      args->log.phy_lib_level = args->log.all_level;
     }
     if(!vm.count("log.mac_level")) {
       args->log.mac_level = args->log.all_level;
@@ -314,14 +337,36 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
       args->log.s1ap_hex_limit = args->log.all_hex_limit;
     }
   }
+
+  // Check remaining eNB config files
+  if (!config_exists(args->enb_files.sib_config, "sib.conf")) {
+    cout << "Failed to read SIB configuration file " << args->enb_files.sib_config << " - exiting" << endl;
+    exit(1);
+  }
+
+  if (!config_exists(args->enb_files.rr_config, "rr.conf")) {
+    cout << "Failed to read RR configuration file " << args->enb_files.rr_config << " - exiting" << endl;
+    exit(1);
+  }
+
+  if (!config_exists(args->enb_files.drb_config, "drb.conf")) {
+    cout << "Failed to read DRB configuration file " << args->enb_files.drb_config << " - exiting" << endl;
+    exit(1);
+  }
 }
 
+static int  sigcnt = 0;
 static bool running    = true;
 static bool do_metrics = false;
 
 void sig_int_handler(int signo)
 {
+  sigcnt++;
   running = false;
+  printf("Stopping srsENB... Press Ctrl+C %d more times to force stop\n", 10-sigcnt);
+  if (sigcnt >= 10) {
+    exit(-1);
+  }
 }
 
 void *input_loop(void *m)
@@ -330,14 +375,19 @@ void *input_loop(void *m)
   char key;
   while(running) {
     cin >> key;
-    if('t' == key) {
-      do_metrics = !do_metrics;
-      if(do_metrics) {
-        cout << "Enter t to stop trace." << endl;
-      } else {
-        cout << "Enter t to restart trace." << endl;
+    if (cin.eof() || cin.bad()) {
+      cout << "Closing stdin thread." << endl;
+      break;
+    } else {
+      if('t' == key) {
+        do_metrics = !do_metrics;
+        if(do_metrics) {
+          cout << "Enter t to stop trace." << endl;
+        } else {
+          cout << "Enter t to restart trace." << endl;
+        }
+        metrics->toggle_print(do_metrics);
       }
-      metrics->toggle_print(do_metrics);
     }
   }
   return NULL;
@@ -345,10 +395,13 @@ void *input_loop(void *m)
 
 int main(int argc, char *argv[])
 {
-  signal(SIGINT,    sig_int_handler);
+  signal(SIGINT, sig_int_handler);
+  signal(SIGTERM, sig_int_handler);
   all_args_t        args;
   metrics_stdout    metrics;
   enb              *enb = enb::get_instance();
+
+  srslte_debug_handle_crash(argc, argv);
 
   cout << "---  Software Radio Systems LTE eNodeB  ---" << endl << endl;
 
@@ -363,12 +416,22 @@ int main(int argc, char *argv[])
 
   bool plot_started         = false; 
   bool signals_pregenerated = false; 
-  while(running) {
+  if(running) {
     if (!plot_started && args.gui.enable) {
       enb->start_plot();
       plot_started = true; 
     }
-    sleep(1);
+  }
+  int cnt=0;
+  while (running) {
+    if (args.expert.print_buffer_state) {
+      cnt++;
+      if (cnt==1000) {
+        cnt=0;
+        enb->print_pool();
+      }
+    }
+    usleep(10000);
   }
   pthread_cancel(input);
   metrics.stop();

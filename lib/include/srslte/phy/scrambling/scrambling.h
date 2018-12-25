@@ -32,8 +32,8 @@
  *  Reference:    3GPP TS 36.211 version 10.0.0 Release 10 Sec. 5.3.1, 6.3.1
  *****************************************************************************/
 
-#ifndef SCRAMBLING_
-#define SCRAMBLING_
+#ifndef SRSLTE_SCRAMBLING_H
+#define SRSLTE_SCRAMBLING_H
 
 #include "srslte/config.h"
 #include "srslte/phy/common/sequence.h"
@@ -68,6 +68,11 @@ SRSLTE_API void srslte_scrambling_s_offset(srslte_sequence_t *s,
                                            int offset, 
                                            int len);
 
+SRSLTE_API void srslte_scrambling_sb_offset(srslte_sequence_t *s,
+                                            int8_t *data,
+                                            int offset,
+                                            int len);
+
 SRSLTE_API void srslte_scrambling_c(srslte_sequence_t *s, 
                                     cf_t *data);
 
@@ -76,4 +81,4 @@ SRSLTE_API void srslte_scrambling_c_offset(srslte_sequence_t *s,
                                            int offset, 
                                            int len);
 
-#endif // SCRAMBLING_
+#endif // SRSLTE_SCRAMBLING_H

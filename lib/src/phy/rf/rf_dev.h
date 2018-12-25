@@ -30,7 +30,7 @@ typedef struct {
   const char *name;
   char*  (*srslte_rf_devname) (void *h);
   bool   (*srslte_rf_rx_wait_lo_locked) (void *h);
-  int    (*srslte_rf_start_rx_stream)(void *h);
+  int    (*srslte_rf_start_rx_stream)(void *h, bool now);
   int    (*srslte_rf_stop_rx_stream)(void *h);
   void   (*srslte_rf_flush_buffer)(void *h);
   bool   (*srslte_rf_has_rssi)(void *h);
@@ -47,6 +47,7 @@ typedef struct {
   double (*srslte_rf_set_tx_gain)(void *h, double gain);
   double (*srslte_rf_get_rx_gain)(void *h);
   double (*srslte_rf_get_tx_gain)(void *h);
+  srslte_rf_info_t *(*srslte_rf_get_info)(void *h);
   double (*srslte_rf_set_rx_freq)(void *h, double freq);  
   double (*srslte_rf_set_tx_srate)(void *h, double freq);
   double (*srslte_rf_set_tx_freq)(void *h, double freq);
@@ -61,10 +62,6 @@ typedef struct {
   int    (*srslte_rf_send_timed_multi)(void *h, void *data[4], int nsamples,
                      time_t secs, double frac_secs, bool has_time_spec,
                      bool blocking, bool is_start_of_burst, bool is_end_of_burst);
-  void   (*srslte_rf_set_tx_cal)(void *h, srslte_rf_cal_t *cal);
-
-  void   (*srslte_rf_set_rx_cal)(void *h, srslte_rf_cal_t *cal);
-
 } rf_dev_t; 
 
 /* Define implementation for UHD */
@@ -93,6 +90,7 @@ static rf_dev_t dev_uhd = {
   rf_uhd_set_tx_gain,
   rf_uhd_get_rx_gain,
   rf_uhd_get_tx_gain,
+  rf_uhd_get_info,
   rf_uhd_set_rx_freq, 
   rf_uhd_set_tx_srate,
   rf_uhd_set_tx_freq,
@@ -100,9 +98,7 @@ static rf_dev_t dev_uhd = {
   rf_uhd_recv_with_time,
   rf_uhd_recv_with_time_multi,
   rf_uhd_send_timed,
-  .srslte_rf_send_timed_multi = rf_uhd_send_timed_multi,
-  rf_uhd_set_tx_cal,
-  rf_uhd_set_rx_cal
+  .srslte_rf_send_timed_multi = rf_uhd_send_timed_multi
 };
 #endif
 
@@ -132,6 +128,7 @@ static rf_dev_t dev_blade = {
   rf_blade_set_tx_gain,
   rf_blade_get_rx_gain,
   rf_blade_get_tx_gain,
+  rf_blade_get_info,
   rf_blade_set_rx_freq, 
   rf_blade_set_tx_srate,
   rf_blade_set_tx_freq,
@@ -139,9 +136,7 @@ static rf_dev_t dev_blade = {
   rf_blade_recv_with_time,
   rf_blade_recv_with_time_multi,
   rf_blade_send_timed,
-  .srslte_rf_send_timed_multi = rf_blade_send_timed_multi,
-  rf_blade_set_tx_cal,
-  rf_blade_set_rx_cal
+  .srslte_rf_send_timed_multi = rf_blade_send_timed_multi
 };
 #endif
 
@@ -170,6 +165,7 @@ static rf_dev_t dev_soapy = {
   rf_soapy_set_tx_gain,
   rf_soapy_get_rx_gain,
   rf_soapy_get_tx_gain,
+  rf_soapy_get_info,
   rf_soapy_set_rx_freq,
   rf_soapy_set_tx_srate,
   rf_soapy_set_tx_freq,
@@ -177,9 +173,7 @@ static rf_dev_t dev_soapy = {
   rf_soapy_recv_with_time,
   rf_soapy_recv_with_time_multi,
   rf_soapy_send_timed,
-  .srslte_rf_send_timed_multi = rf_soapy_send_timed_multi,
-  rf_soapy_set_tx_cal,
-  rf_soapy_set_rx_cal
+  .srslte_rf_send_timed_multi = rf_soapy_send_timed_multi
 };
 
 #endif

@@ -24,15 +24,15 @@
  *
  */
 
-#ifndef ENBTXRX_H
-#define ENBTXRX_H
+#ifndef SRSENB_TXRX_H
+#define SRSENB_TXRX_H
 
 #include "srslte/common/log.h"
 #include "srslte/common/threads.h"
 #include "srslte/common/thread_pool.h"
 #include "srslte/radio/radio.h"
-#include "phy/phch_common.h"
-#include "phy/prach_worker.h"
+#include "phch_common.h"
+#include "prach_worker.h"
 
 namespace srsenb {
     
@@ -50,8 +50,6 @@ public:
             uint32_t prio);
   void stop();
     
-  const static int MUTEX_X_WORKER = 4; 
-  
 private:
     
   void run_thread(); 
@@ -61,16 +59,16 @@ private:
   srslte::thread_pool  *workers_pool;
   prach_worker         *prach; 
   phch_common          *worker_com;
-    
-  uint32_t tx_mutex_cnt; 
-  uint32_t nof_tx_mutex; 
-  
+
   // Main system TTI counter   
-  uint32_t tti; 
+  uint32_t tti;
+
+  uint32_t tx_worker_cnt;
+  uint32_t nof_workers;
   
   bool running; 
 };
 
 } // namespace srsenb
 
-#endif // UEPHY_H
+#endif // SRSENB_TXRX_H

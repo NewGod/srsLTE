@@ -47,7 +47,12 @@ void srslte_scrambling_s(srslte_sequence_t *s, short *data) {
 
 void srslte_scrambling_s_offset(srslte_sequence_t *s, short *data, int offset, int len) {
   assert (len + offset <= s->cur_len);
-  srslte_vec_prod_sss(data, &s->c_short[offset], data, len);
+  srslte_vec_neg_sss(data, &s->c_short[offset], data, len);
+}
+
+void srslte_scrambling_sb_offset(srslte_sequence_t *s, int8_t *data, int offset, int len) {
+  assert (len + offset <= s->cur_len);
+  srslte_vec_neg_bbb(data, &s->c_char[offset], data, len);
 }
 
 void srslte_scrambling_c(srslte_sequence_t *s, cf_t *data) {
@@ -60,10 +65,8 @@ void srslte_scrambling_c_offset(srslte_sequence_t *s, cf_t *data, int offset, in
 }
 
 void scrambling_b(uint8_t *c, uint8_t *data, int len) {
-  int i;  
-  for (i = 0; i < len; i++) {
-    data[i] = (data[i] ^ c[i]);
-  }  
+
+  srslte_vec_xor_bbb((int8_t*)c,(int8_t*)data,(int8_t*)data,len);  
 }
 
 void scrambling_b_word(uint8_t *c, uint8_t *data, int len) {

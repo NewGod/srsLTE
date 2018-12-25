@@ -24,18 +24,21 @@
  *
  */
 
-#ifndef BUFFER_POOL_H
-#define BUFFER_POOL_H
+#ifndef SRSLTE_BUFFER_POOL_H
+#define SRSLTE_BUFFER_POOL_H
 
 #include <pthread.h>
 #include <vector>
 #include <stack>
+#include <map>
+#include <string>
 #include <algorithm>
 
 /*******************************************************************************
                               INCLUDES
 *******************************************************************************/
 
+#include "srslte/common/log.h"
 #include "srslte/common/common.h"
 
 namespace srslte {
@@ -54,9 +57,14 @@ class buffer_pool{
 public:
   
   // non-static methods
-  buffer_pool(uint32_t nof_buffers = POOL_SIZE)
+  buffer_pool(int capacity_ = -1)
   {
+    uint32_t nof_buffers = POOL_SIZE;
+    if (capacity_ > 0) {
+      nof_buffers = (uint32_t) capacity_;
+    }
     pthread_mutex_init(&mutex, NULL);
+    pthread_cond_init(&cv_not_empty, NULL);
     for(uint32_t i=0;i<nof_buffers;i++) {
       buffer_t *b = new buffer_t;
       available.push(b);
@@ -70,39 +78,69 @@ public:
       delete available.top();
       available.pop();
     }
+
+    for (uint32_t i = 0; i < used.size(); i++) {
+      delete used[i];
+    }
+    pthread_cond_destroy(&cv_not_empty);
+    pthread_mutex_destroy(&mutex);
   }
   
   void print_all_buffers()
   {
     printf("%d buffers in queue\n", (int) used.size());
+#ifdef SRSLTE_BUFFER_POOL_LOG_ENABLED
+    std::map<std::string, uint32_t> buffer_cnt;
     for (uint32_t i=0;i<used.size();i++) {
-      printf("%s\n", strlen(used[i]->debug_name)?used[i]->debug_name:"Undefined");
+      buffer_cnt[strlen(used[i]->debug_name)?used[i]->debug_name:"Undefined"]++;
     }
+    std::map<std::string, uint32_t>::iterator it;
+    for (it = buffer_cnt.begin(); it != buffer_cnt.end(); it++) {
+      printf(" - %dx %s\n", it->second, it->first.c_str());
+    }
+#endif
   }
-  
 
-  buffer_t* allocate(const char *debug_name = NULL)
-  {
+  uint32_t nof_available_pdus() {
+    return available.size();
+  }
+
+  bool is_almost_empty() {
+    return available.size() < capacity/20;
+  }
+
+  buffer_t* allocate(const char *debug_name = NULL, bool blocking = false) {
     pthread_mutex_lock(&mutex);
-    buffer_t* b = NULL;
+    buffer_t *b = NULL;
 
-    if(available.size() > 0)
-    {
+    if (available.size() > 0) {
       b = available.top();
       used.push_back(b);
       available.pop();
-      
-      if (available.size() < capacity/20) {
-        printf("Warning buffer pool capacity is %f %%\n", (float) available.size()/capacity);
+
+      if (is_almost_empty()) {
+        printf("Warning buffer pool capacity is %f %%\n", (float) 100 * available.size() / capacity);
       }
 #ifdef SRSLTE_BUFFER_POOL_LOG_ENABLED
-    if (debug_name) {
-      strncpy(b->debug_name, debug_name, SRSLTE_BUFFER_POOL_LOG_NAME_LEN);
-      b->debug_name[SRSLTE_BUFFER_POOL_LOG_NAME_LEN-1] = 0;
-    }
+      if (debug_name) {
+        strncpy(b->debug_name, debug_name, SRSLTE_BUFFER_POOL_LOG_NAME_LEN);
+        b->debug_name[SRSLTE_BUFFER_POOL_LOG_NAME_LEN - 1] = 0;
+      }
 #endif
-      
-    } else {
+    } else if (blocking) {
+      // blocking allocation
+      while(available.size() == 0) {
+        pthread_cond_wait(&cv_not_empty, &mutex);
+      }
+
+      // retrieve the new buffer
+      b = available.top();
+      used.push_back(b);
+      available.pop();
+
+      // do not print any warning
+    }
+    else {
       printf("Error - buffer pool is empty\n");
       
 #ifdef SRSLTE_BUFFER_POOL_LOG_ENABLED
@@ -123,19 +161,19 @@ public:
       used.erase(elem); 
       available.push(b);
       ret = true; 
-    } else {
-      printf("Error deallocating from buffer pool: buffer not created in this pool.\n");
     }
+    pthread_cond_signal(&cv_not_empty);
     pthread_mutex_unlock(&mutex);
     return ret; 
   }
 
   
 private:  
-  static const int       POOL_SIZE = 2048;
+  static const int       POOL_SIZE = 4096;
   std::stack<buffer_t*>  available;
   std::vector<buffer_t*> used; 
-  pthread_mutex_t        mutex;  
+  pthread_mutex_t        mutex;
+  pthread_cond_t         cv_not_empty;
   uint32_t capacity;
 };
 
@@ -144,29 +182,52 @@ class byte_buffer_pool {
 public: 
   // Singleton static methods
   static byte_buffer_pool   *instance;  
-  static byte_buffer_pool*   get_instance(void);
+  static byte_buffer_pool*   get_instance(int capacity = -1);
   static void                cleanup(void); 
-  byte_buffer_pool() {
-    pool = new buffer_pool<byte_buffer_t>;
+  byte_buffer_pool(int capacity = -1) {
+    log = NULL;
+    pool = new buffer_pool<byte_buffer_t>(capacity);
   }
   ~byte_buffer_pool() {
     delete pool; 
   }
-  byte_buffer_t* allocate(const char *debug_name = NULL) {
-    return pool->allocate(debug_name);
+  byte_buffer_t* allocate(const char *debug_name = NULL, bool blocking = false) {
+    return pool->allocate(debug_name, blocking);
+  }
+  void set_log(srslte::log *log) {
+    this->log = log;
   }
   void deallocate(byte_buffer_t *b) {
     if(!b) {
       return;
     }
     b->reset();
-    pool->deallocate(b);
+    if (!pool->deallocate(b)) {
+      if (log) {
+#ifdef SRSLTE_BUFFER_POOL_LOG_ENABLED
+        log->error("Deallocating PDU: Addr=0x%lx, name=%s not found in pool\n", (uint64_t) b, b->debug_name);
+#else
+        log->error("Deallocating PDU: Addr=0x%lx\n", (uint64_t) b);
+#endif
+      } else {
+#ifdef SRSLTE_BUFFER_POOL_LOG_ENABLED
+        printf("Error deallocating PDU: Addr=0x%lx, name=%s not found in pool\n", (uint64_t) b, b->debug_name);
+#else
+        printf("Error deallocating PDU: Addr=0x%lx\n", (uint64_t) b);
+#endif
+      }
+    }
+    b = NULL;
+  }
+  void print_all_buffers() {
+    pool->print_all_buffers();
   }
 private:
+  srslte::log *log;
   buffer_pool<byte_buffer_t> *pool; 
 };
 
 
 } // namespace srsue
 
-#endif // BUFFER_POOL_H
+#endif // SRSLTE_BUFFER_POOL_H

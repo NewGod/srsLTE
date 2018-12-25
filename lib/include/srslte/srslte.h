@@ -25,13 +25,13 @@
  */
 
 
-#ifndef _LTE_
-#define _LTE_
+#ifndef SRSLTE_SRSLTE_H
+#define SRSLTE_SRSLTE_H
 
 #ifdef __cplusplus
     extern "C" {
 #endif
-      
+
 #include <complex.h>
 #include <math.h>
 
@@ -39,6 +39,7 @@
 #include "srslte/version.h"
 
 #include "srslte/phy/utils/bit.h"
+#include "srslte/phy/utils/ringbuffer.h"
 #include "srslte/phy/utils/convolution.h"
 #include "srslte/phy/utils/debug.h"
 #include "srslte/phy/utils/cexptab.h"
@@ -47,7 +48,8 @@
 #include "srslte/phy/common/timestamp.h"
 #include "srslte/phy/common/sequence.h"
 #include "srslte/phy/common/phy_common.h"
-            
+#include "srslte/phy/common/phy_logger.h"
+
 #include "srslte/phy/ch_estimation/chest_ul.h"
 #include "srslte/phy/ch_estimation/chest_dl.h"
 #include "srslte/phy/ch_estimation/refsignal_dl.h"
@@ -102,7 +104,7 @@
 #include "srslte/phy/phch/regs.h"
 #include "srslte/phy/phch/sch.h"
 #include "srslte/phy/phch/uci.h"
-      
+
 #include "srslte/phy/ue/ue_sync.h"
 #include "srslte/phy/ue/ue_mib.h"
 #include "srslte/phy/ue/ue_cell_search.h"
@@ -126,4 +128,4 @@
 #undef I // Fix complex.h #define I nastiness when using C++
 #endif
 
-#endif
+#endif // SRSLTE_SRSLTE_H

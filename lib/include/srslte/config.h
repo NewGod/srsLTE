@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef SRSLTE_CONFIG_H
+#define SRSLTE_CONFIG_H
 
 // Generic helper definitions for shared library support
 #if defined _WIN32 || defined __CYGWIN__
@@ -52,6 +52,14 @@
 #endif
 
 
+// Useful macros for templates
+#define CONCAT(a, b) a##b
+#define CONCAT2(a, b) CONCAT(a,b)
+
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+
+
 // Common error codes
 #define SRSLTE_SUCCESS                0
 #define SRSLTE_ERROR                  -1
@@ -60,4 +68,8 @@
 // cf_t definition
 typedef _Complex float cf_t;
 
-#endif // CONFIG_H
+#ifdef ENABLE_C16
+typedef _Complex short int c16_t;
+#endif /* ENABLE_C16 */
+
+#endif // SRSLTE_CONFIG_H

@@ -51,8 +51,11 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
   pthread_attr_t attr;
   struct sched_param param;
   cpu_set_t cpuset;
+  bool attr_enable = false;
+
+#ifdef PER_THREAD_PRIO
   if (prio_offset >= 0) {
-    param.sched_priority = sched_get_priority_max(SCHED_FIFO) - prio_offset;  
+    param.sched_priority = sched_get_priority_max(SCHED_FIFO) - prio_offset;
     pthread_attr_init(&attr);
     if (pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)) {
       perror("pthread_attr_setinheritsched");
@@ -64,6 +67,54 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
       perror("pthread_attr_setschedparam");
       fprintf(stderr, "Error not enough privileges to set Scheduling priority\n");
     }
+    attr_enable = true;
+  } else if (prio_offset == -1) {
+    param.sched_priority = sched_get_priority_max(SCHED_FIFO) - DEFAULT_PRIORITY;
+    pthread_attr_init(&attr);
+    if (pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)) {
+      perror("pthread_attr_setinheritsched");
+    }
+    if (pthread_attr_setschedpolicy(&attr, SCHED_FIFO)) {
+      perror("pthread_attr_setschedpolicy");
+    }
+    if (pthread_attr_setschedparam(&attr, &param)) {
+      perror("pthread_attr_setschedparam");
+      fprintf(stderr, "Error not enough privileges to set Scheduling priority\n");
+    }
+    attr_enable = true;
+  } else if (prio_offset == -2) {
+#else
+  // All threads have normal priority except prio_offset=0,1,2,3,4
+  if (prio_offset >= 0 && prio_offset < 5) {
+    param.sched_priority = 50-prio_offset;
+    pthread_attr_init(&attr);
+    if (pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)) {
+      perror("pthread_attr_setinheritsched");
+    }
+    if (pthread_attr_setschedpolicy(&attr, SCHED_FIFO)) {
+      perror("pthread_attr_setschedpolicy");
+    }
+    if (pthread_attr_setschedparam(&attr, &param)) {
+      perror("pthread_attr_setschedparam");
+      fprintf(stderr, "Error not enough privileges to set Scheduling priority\n");
+    }
+    attr_enable = true;
+
+  } else {
+#endif
+    param.sched_priority = 0;
+    pthread_attr_init(&attr);
+    if (pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED)) {
+      perror("pthread_attr_setinheritsched");
+    }
+    if (pthread_attr_setschedpolicy(&attr, SCHED_OTHER)) {
+      perror("pthread_attr_setschedpolicy");
+    }
+    if (pthread_attr_setschedparam(&attr, &param)) {
+      perror("pthread_attr_setschedparam");
+      fprintf(stderr, "Error not enough privileges to set Scheduling priority\n");
+    }
+    attr_enable = true;
   }
   if(cpu > 0) {
     if(cpu > 50) {
@@ -86,7 +137,7 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
     }
   }
 
-  int err = pthread_create(thread, prio_offset >= 0 ? &attr : NULL, start_routine, arg);
+  int err = pthread_create(thread, attr_enable ? &attr : NULL, start_routine, arg);
   if (err) {
     if (EPERM == err) {
       perror("Warning: Failed to create thread with real-time priority. Creating it with normal priority");
@@ -102,7 +153,7 @@ bool threads_new_rt_cpu(pthread_t *thread, void *(*start_routine) (void*), void 
   } else {
     ret = true; 
   }
-  if (prio_offset >= 0) {
+  if (attr_enable) {
     pthread_attr_destroy(&attr);
   }
   return ret; 

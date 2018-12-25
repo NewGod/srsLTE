@@ -24,14 +24,16 @@
  *
  */
 
-#ifndef PDCP_ENTITY_H
-#define PDCP_ENTITY_H
+#ifndef SRSLTE_PDCP_ENTITY_H
+#define SRSLTE_PDCP_ENTITY_H
 
 #include "srslte/common/buffer_pool.h"
 #include "srslte/common/log.h"
 #include "srslte/common/common.h"
 #include "srslte/interfaces/ue_interfaces.h"
 #include "srslte/common/security.h"
+#include "srslte/common/threads.h"
+#include "pdcp_interface.h"
 
 
 namespace srslte {
@@ -58,7 +60,7 @@ static const char pdcp_d_c_text[PDCP_D_C_N_ITEMS][20] = {"Control PDU",
  * PDCP Entity interface
  * Common interface for all PDCP entities
  ***************************************************************************/
-class pdcp_entity
+class pdcp_entity : public pdcp_entity_interface
 {
 public:
   pdcp_entity();
@@ -69,15 +71,20 @@ public:
             uint32_t                       lcid_,
             srslte_pdcp_config_t           cfg_);
   void reset();
+  void reestablish();
 
   bool is_active();
 
   // RRC interface
-  void write_sdu(byte_buffer_t *sdu);
-  void config_security(uint8_t *k_rrc_enc_,
-                       uint8_t *k_rrc_int_,
+  void write_sdu(byte_buffer_t *sdu, bool blocking);
+  void config_security(uint8_t *k_enc_,
+                       uint8_t *k_int_,
                        CIPHERING_ALGORITHM_ID_ENUM cipher_algo_,
                        INTEGRITY_ALGORITHM_ID_ENUM integ_algo_);
+  void enable_integrity();
+  void enable_encryption();
+  uint32_t get_dl_count();
+  uint32_t get_ul_count();
 
   // RLC interface
   void write_pdu(byte_buffer_t *pdu);
@@ -93,23 +100,37 @@ private:
   bool                active;
   uint32_t            lcid;
   srslte_pdcp_config_t cfg;
+  uint8_t             sn_len_bytes;
+  bool                do_integrity;
+  bool                do_encryption;
 
   uint32_t            rx_count;
   uint32_t            tx_count;
-  uint8_t             k_rrc_enc[32];
-  uint8_t             k_rrc_int[32];
+  uint8_t             k_enc[32];
+  uint8_t             k_int[32];
 
   CIPHERING_ALGORITHM_ID_ENUM cipher_algo;
   INTEGRITY_ALGORITHM_ID_ENUM integ_algo;
 
-  void integrity_generate(uint8_t  *key_128,
-                          uint32_t  count,
-                          uint8_t   rb_id,
-                          uint8_t   direction,
-                          uint8_t  *msg,
+  void integrity_generate(uint8_t  *msg,
                           uint32_t  msg_len,
                           uint8_t  *mac);
 
+  bool integrity_verify(uint8_t  *msg,
+                        uint32_t  count,
+                        uint32_t  msg_len,
+                        uint8_t  *mac);
+
+  void cipher_encrypt(uint8_t  *msg,
+                      uint32_t  msg_len,
+                      uint8_t  *ct);
+
+  void cipher_decrypt(uint8_t  *ct,
+                      uint32_t  count,
+                      uint32_t  ct_len,
+                      uint8_t  *msg);
+
+  uint8_t  get_bearer_id(uint8_t lcid);
 };
 
 /****************************************************************************
@@ -125,7 +146,7 @@ void pdcp_unpack_data_pdu_short_sn(byte_buffer_t *sdu, uint32_t *sn);
 void pdcp_pack_data_pdu_long_sn(uint32_t sn, byte_buffer_t *sdu);
 void pdcp_unpack_data_pdu_long_sn(byte_buffer_t *sdu, uint32_t *sn);
 
-} // namespace srsue
+} // namespace srslte
 
 
-#endif // PDCP_ENTITY_H
+#endif // SRSLTE_PDCP_ENTITY_H

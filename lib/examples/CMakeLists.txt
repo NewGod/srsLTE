@@ -32,18 +32,18 @@ target_link_libraries(synch_file srslte_phy)
 
 if(RF_FOUND)
   add_executable(pdsch_ue pdsch_ue.c)
-  target_link_libraries(pdsch_ue srslte_phy srslte_rf pthread)
+  target_link_libraries(pdsch_ue srslte_phy srslte_common srslte_rf pthread)
 
   add_executable(pdsch_enodeb pdsch_enodeb.c)
-  target_link_libraries(pdsch_enodeb srslte_phy srslte_rf pthread)
+  target_link_libraries(pdsch_enodeb srslte_phy srslte_common srslte_rf pthread)
 else(RF_FOUND)
   add_definitions(-DDISABLE_RF)
 
   add_executable(pdsch_ue pdsch_ue.c)
-  target_link_libraries(pdsch_ue srslte_phy pthread)
+  target_link_libraries(pdsch_ue srslte_common srslte_phy pthread)
 
   add_executable(pdsch_enodeb pdsch_enodeb.c)
-  target_link_libraries(pdsch_enodeb srslte_phy pthread)
+  target_link_libraries(pdsch_enodeb srslte_common srslte_phy pthread)
 endif(RF_FOUND)
 
 find_package(SRSGUI)
@@ -63,10 +63,10 @@ endif(SRSGUI_FOUND)
 if(RF_FOUND)
 
   add_executable(cell_search cell_search.c)
-  target_link_libraries(cell_search srslte_phy srslte_rf)
+  target_link_libraries(cell_search srslte_phy srslte_common srslte_rf)
 
   add_executable(cell_measurement cell_measurement.c)
-  target_link_libraries(cell_measurement srslte_phy srslte_rf)
+  target_link_libraries(cell_measurement srslte_phy srslte_common srslte_rf)
 
   add_executable(usrp_capture usrp_capture.c)
   target_link_libraries(usrp_capture srslte_phy srslte_rf)

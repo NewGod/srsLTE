@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef RLC_COMMON_H
-#define RLC_COMMON_H
+#ifndef SRSLTE_RLC_COMMON_H
+#define SRSLTE_RLC_COMMON_H
 
 #include "srslte/upper/rlc_interface.h"
 
@@ -37,16 +37,8 @@ namespace srslte {
  ***************************************************************************/
 
 #define RLC_AM_WINDOW_SIZE  512
+#define RLC_MAX_SDU_SIZE ((1<<11)-1) // Length of LI field is 11bits
 
-typedef enum{
-  RLC_MODE_TM = 0,
-  RLC_MODE_UM,
-  RLC_MODE_AM,
-  RLC_MODE_N_ITEMS,
-}rlc_mode_t;
-static const char rlc_mode_text[RLC_MODE_N_ITEMS][20] = {"Transparent Mode",
-                                                         "Unacknowledged Mode",
-                                                         "Acknowledged Mode"};
 
 typedef enum{
   RLC_FI_FIELD_START_AND_END_ALIGNED = 0,
@@ -151,21 +143,30 @@ struct rlc_status_pdu_t{
 class rlc_common
 {
 public:
+
+  // Size of the Uplink buffer in number of PDUs
+  const static int RLC_BUFFER_NOF_PDU = 128;
+
+  virtual ~rlc_common() {}
   virtual void init(srslte::log                       *rlc_entity_log_,
                     uint32_t                           lcid_,
                     srsue::pdcp_interface_rlc         *pdcp_,
                     srsue::rrc_interface_rlc          *rrc_,
                     srslte::mac_interface_timers      *mac_timers_) = 0;
-  virtual void configure(srslte_rlc_config_t cnfg) = 0;
-  virtual void reset() = 0;
+  virtual bool configure(srslte_rlc_config_t cnfg) = 0;
   virtual void stop() = 0;
+  virtual void reestablish() = 0;
   virtual void empty_queue() = 0; 
 
   virtual rlc_mode_t    get_mode() = 0;
   virtual uint32_t      get_bearer() = 0;
 
+  virtual uint32_t get_num_tx_bytes() = 0;
+  virtual uint32_t get_num_rx_bytes() = 0;
+  virtual void reset_metrics() = 0;
+
   // PDCP interface
-  virtual void write_sdu(byte_buffer_t *sdu) = 0;
+  virtual void write_sdu(byte_buffer_t *sdu, bool blocking) = 0;
 
   // MAC interface
   virtual uint32_t get_buffer_state() = 0;
@@ -176,4 +177,4 @@ public:
 
 } // namespace srslte
 
-#endif // RLC_COMMON_H
+#endif // SRSLTE_RLC_COMMON_H

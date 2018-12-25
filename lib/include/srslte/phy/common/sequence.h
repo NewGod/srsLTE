@@ -33,8 +33,8 @@
  *  Reference:    3GPP TS 36.211 version 10.0.0 Release 10 Sec. 7.2
  *********************************************************************************************/
 
-#ifndef LTESEQ_
-#define LTESEQ_
+#ifndef SRSLTE_SEQUENCE_H
+#define SRSLTE_SEQUENCE_H
 
 #include "srslte/config.h"
 #include "srslte/phy/common/phy_common.h"
@@ -44,6 +44,7 @@ typedef struct SRSLTE_API {
   uint8_t *c_bytes;
   float *c_float;
   short *c_short;
+  int8_t *c_char;
   uint32_t cur_len;
   uint32_t max_len;
 } srslte_sequence_t;
@@ -100,4 +101,4 @@ SRSLTE_API int srslte_sequence_pmch(srslte_sequence_t *seq,
                                     uint32_t mbsfn_id,
                                     uint32_t len);
 
-#endif
+#endif // SRSLTE_SEQUENCE_H

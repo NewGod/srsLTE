@@ -32,8 +32,8 @@
  *  Reference:    3GPP TS 36.212 version 10.0.0 Release 10
  *****************************************************************************/
 
-#ifndef SCH_
-#define SCH_
+#ifndef SRSLTE_SCH_H
+#define SRSLTE_SCH_H
 
 #include "srslte/config.h"
 #include "srslte/phy/common/phy_common.h"
@@ -59,12 +59,14 @@ typedef struct SRSLTE_API {
   uint32_t max_iterations;
   uint32_t nof_iterations;
 
+  bool llr_is_8bit;
+
   /* buffers */
   uint8_t *cb_in; 
   uint8_t *parity_bits;  
   void *e;
   uint8_t *temp_g_bits;
-  uint16_t *ul_interleaver;
+  uint32_t *ul_interleaver;
   srslte_uci_bit_t ack_ri_bits[12*288];
   uint32_t nof_ri_ack_bits; 
   
@@ -159,4 +161,4 @@ SRSLTE_API uint32_t srslte_sch_find_Ioffset_cqi(float beta);
 
 SRSLTE_API uint32_t srslte_sch_find_Ioffset_ri(float beta); 
 
-#endif
+#endif // SRSLTE_SCH_H

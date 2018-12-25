@@ -24,8 +24,8 @@
  *
  */
 
-#ifndef UE_MAC_METRICS_H
-#define UE_MAC_METRICS_H
+#ifndef SRSUE_MAC_METRICS_H
+#define SRSUE_MAC_METRICS_H
 
 
 namespace srsue {
@@ -39,8 +39,10 @@ struct mac_metrics_t
   int rx_errors;
   int rx_brate;
   int ul_buffer;
+  float dl_retx_avg;
+  float ul_retx_avg;
 };
 
 } // namespace srsue
 
-#endif // UE_MAC_METRICS_H
+#endif // SRSUE_MAC_METRICS_H

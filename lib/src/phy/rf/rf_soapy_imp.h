@@ -28,7 +28,9 @@
 #include <stdint.h>
 #include "srslte/config.h"
 #include "srslte/phy/rf/rf.h"
-
+#define DEVNAME_NONE "none"
+#define DEVNAME_LIME "lime"
+#define DEVNAME_LIME_MINI "lime_mini"
 
 SRSLTE_API int rf_soapy_open(char *args,
                              void **handler);
@@ -41,13 +43,11 @@ SRSLTE_API char* rf_soapy_devname(void *h);
 
 SRSLTE_API int rf_soapy_close(void *h);
 
-SRSLTE_API void rf_soapy_set_tx_cal(void *h, srslte_rf_cal_t *cal);
-
-SRSLTE_API void rf_soapy_set_rx_cal(void *h, srslte_rf_cal_t *cal);
-
-SRSLTE_API int rf_soapy_start_rx_stream(void *h);
+SRSLTE_API int rf_soapy_start_rx_stream(void *h, bool now);
 
 SRSLTE_API int rf_soapy_stop_rx_stream(void *h);
+
+SRSLTE_API void rf_soapy_calibrate_tx(void *h);
 
 SRSLTE_API void rf_soapy_flush_buffer(void *h);
 
@@ -74,6 +74,8 @@ SRSLTE_API double rf_soapy_set_tx_gain(void *h,
                                        double gain);
 
 SRSLTE_API double rf_soapy_get_tx_gain(void *h);
+
+SRSLTE_API srslte_rf_info_t *rf_soapy_get_info(void *h);
 
 SRSLTE_API void rf_soapy_suppress_stdout(void *h);
 

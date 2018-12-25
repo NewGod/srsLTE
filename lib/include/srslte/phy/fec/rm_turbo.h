@@ -32,10 +32,11 @@
  *  Reference:    3GPP TS 36.212 version 10.0.0 Release 10 Sec. 5.1.4.1
  *********************************************************************************************/
 
-#ifndef RM_TURBO_
-#define RM_TURBO_
+#ifndef SRSLTE_RM_TURBO_H
+#define SRSLTE_RM_TURBO_H
 
 #include "srslte/config.h"
+#include "srslte/phy/fec/turbodecoder.h"
 
 #ifndef SRSLTE_RX_NULL
 #define SRSLTE_RX_NULL 10000
@@ -47,7 +48,6 @@
 
 #include "srslte/config.h"
 
-
 SRSLTE_API int srslte_rm_turbo_tx(uint8_t *w_buff,
                                   uint32_t buff_len, 
                                   uint8_t *input, 
@@ -57,6 +57,8 @@ SRSLTE_API int srslte_rm_turbo_tx(uint8_t *w_buff,
                                   uint32_t rv_idx);
 
 SRSLTE_API void srslte_rm_turbo_gentables(); 
+
+SRSLTE_API void srslte_rm_turbo_free_tables();
 
 SRSLTE_API int srslte_rm_turbo_tx_lut(uint8_t *w_buff, 
                                       uint8_t *systematic, 
@@ -80,7 +82,19 @@ SRSLTE_API int srslte_rm_turbo_rx_lut(int16_t *input,
                                       int16_t *output, 
                                       uint32_t in_len, 
                                       uint32_t cb_idx, 
-                                      uint32_t rv_idx); 
+                                      uint32_t rv_idx);
 
+SRSLTE_API int srslte_rm_turbo_rx_lut_(int16_t *input,
+                                       int16_t *output,
+                                       uint32_t in_len,
+                                       uint32_t cb_idx,
+                                       uint32_t rv_idx,
+                                       bool enable_input_tdec);
 
-#endif
+SRSLTE_API int srslte_rm_turbo_rx_lut_8bit(int8_t *input,
+                                           int8_t *output,
+                                           uint32_t in_len,
+                                           uint32_t cb_idx,
+                                           uint32_t rv_idx);
+
+#endif // SRSLTE_RM_TURBO_H

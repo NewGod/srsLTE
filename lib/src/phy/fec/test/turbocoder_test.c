@@ -40,7 +40,7 @@ uint32_t long_cb = 0;
 
 void usage(char *prog) {
   printf("Usage: %s\n", prog);
-  printf("\t-l long_cb [Default check all]\n", long_cb);
+  printf("\t-l long_cb [Default %u]\n", long_cb);
 }
 
 void parse_args(int argc, char **argv) {
@@ -71,8 +71,6 @@ int main(int argc, char **argv) {
 
   parse_args(argc, argv);
   
-  srslte_tcod_gentable();
-
   srslte_tcod_t tcod;
   srslte_tcod_init(&tcod, 6144);
 
@@ -98,8 +96,16 @@ int main(int argc, char **argv) {
       }
     }
 
+    /* Create CRC for Transport Block, it is not currently used but it is required */
+    srslte_crc_t crc_tb;
+    bzero(&crc_tb, sizeof(crc_tb));
+    if (srslte_crc_init(&crc_tb, SRSLTE_LTE_CRC24A, 24)) {
+      printf("error initialising CRC\n");
+      exit(-1);
+    }
+
     srslte_tcod_encode(&tcod, input_bits, output_bits, long_cb);
-    srslte_tcod_encode_lut(&tcod, input_bytes, parity, len);
+    srslte_tcod_encode_lut(&tcod, &crc_tb, NULL, input_bytes, parity, len, false);
 
     srslte_bit_unpack_vector(parity, parity_bits, 2*(long_cb+4));
     

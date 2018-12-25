@@ -32,8 +32,8 @@
  *  Reference:    3GPP TS 36.211 version 10.0.0 Release 10 Sec. 5.3
  *****************************************************************************/
 
-#ifndef PUSCH_
-#define PUSCH_
+#ifndef SRSLTE_PUSCH_H
+#define SRSLTE_PUSCH_H
 
 #include "srslte/config.h"
 #include "srslte/phy/common/phy_common.h"
@@ -73,6 +73,8 @@ typedef struct SRSLTE_API {
   bool is_ue;
   uint16_t ue_rnti;
   uint32_t max_re;
+
+  bool llr_is_8bit;
 
   srslte_dft_precoding_t dft_precoding;  
   
@@ -142,10 +144,11 @@ SRSLTE_API int srslte_pusch_decode(srslte_pusch_t *q,
                                    float noise_estimate, 
                                    uint16_t rnti,
                                    uint8_t *data, 
+                                   srslte_cqi_value_t *cqi_value,
                                    srslte_uci_data_t *uci_data);
 
 SRSLTE_API float srslte_pusch_average_noi(srslte_pusch_t *q); 
 
 SRSLTE_API uint32_t srslte_pusch_last_noi(srslte_pusch_t *q); 
 
-#endif
+#endif // SRSLTE_PUSCH_H
