@@ -105,6 +105,7 @@ bool enb::init(all_args_t *args_)
   rrc_log.init("RRC ", logger);
   gtpu_log.init("GTPU", logger);
   s1ap_log.init("S1AP", logger);
+  x2ap_log.init("X2AP", logger);
 
   pool_log.init("POOL", logger);
   pool_log.set_level(srslte::LOG_LEVEL_ERROR);
@@ -121,6 +122,7 @@ bool enb::init(all_args_t *args_)
   rrc_log.set_level(level(args->log.rrc_level));
   gtpu_log.set_level(level(args->log.gtpu_level));
   s1ap_log.set_level(level(args->log.s1ap_level));
+  x2ap_log.set_level(level(args->log.x2ap_level));
 
   for (int i=0;i<args->expert.phy.nof_phy_threads;i++) {
     ((srslte::log_filter*) phy_log[i])->set_hex_limit(args->log.phy_hex_limit);
@@ -131,6 +133,7 @@ bool enb::init(all_args_t *args_)
   rrc_log.set_hex_limit(args->log.rrc_hex_limit);
   gtpu_log.set_hex_limit(args->log.gtpu_hex_limit);
   s1ap_log.set_hex_limit(args->log.s1ap_hex_limit);
+  x2ap_log.set_hex_limit(args->log.x2ap_hex_limit);
 
   // Set up pcap and trace
   if(args->pcap.enable)
@@ -248,8 +251,9 @@ bool enb::init(all_args_t *args_)
   mac.init(&args->expert.mac, &cell_cfg, &phy, &rlc, &rrc, &mac_log);
   rlc.init(&pdcp, &rrc, &mac, &mac, &rlc_log);
   pdcp.init(&rlc, &rrc, &gtpu, &pdcp_log);
-  rrc.init(&rrc_cfg, &phy, &mac, &rlc, &pdcp, &s1ap, &gtpu, &rrc_log);
-  s1ap.init(args->enb.s1ap, &rrc, &s1ap_log);
+  rrc.init(&rrc_cfg, &phy, &mac, &rlc, &pdcp, &s1ap, &x2ap, &gtpu, &rrc_log);
+  s1ap.init(args->enb.s1ap, &rrc, &x2ap, &s1ap_log);
+  x2ap.init(args->enb.x2ap, &rrc, &s1ap, &x2ap_log);
   gtpu.init(args->enb.s1ap.gtp_bind_addr, args->enb.s1ap.mme_addr, args->expert.m1u_multiaddr, args->expert.m1u_if_addr, &pdcp, &gtpu_log, args->expert.enable_mbsfn);
 
   started = true;
@@ -303,6 +307,7 @@ bool enb::get_metrics(enb_metrics_t &m)
   mac.get_metrics(m.mac);
   rrc.get_metrics(m.rrc);
   s1ap.get_metrics(m.s1ap);
+  x2ap.get_metrics(m.x2ap);
 
   m.running = started;  
   return true;

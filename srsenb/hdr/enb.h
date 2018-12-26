@@ -64,6 +64,7 @@ namespace srsenb {
 
 typedef struct {
   s1ap_args_t s1ap; 
+  x2ap_args_t x2ap;
   uint32_t    n_prb; 
   uint32_t    pci; 
   uint32_t    nof_ports;
@@ -104,6 +105,7 @@ typedef struct {
   std::string   rrc_level;
   std::string   gtpu_level;
   std::string   s1ap_level;
+  std::string   x2ap_level;
   std::string   all_level;
   int           phy_hex_limit;
   int           mac_hex_limit;
@@ -112,6 +114,7 @@ typedef struct {
   int           rrc_hex_limit;
   int           gtpu_hex_limit;
   int           s1ap_hex_limit;
+  int           x2ap_hex_limit;
   int           all_hex_limit;
   int           file_max_size;
   std::string   filename;
@@ -189,6 +192,7 @@ private:
   srsenb::rrc rrc;
   srsenb::gtpu gtpu;
   srsenb::s1ap s1ap;
+  srsenb::x2ap x2ap;
 
   srslte::logger_stdout logger_stdout;
   srslte::logger_file   logger_file;
@@ -202,6 +206,7 @@ private:
   srslte::log_filter  rrc_log;
   srslte::log_filter  gtpu_log;
   srslte::log_filter  s1ap_log;
+  srslte::log_filter  x2ap_log;
   srslte::log_filter  pool_log;
 
   srslte::byte_buffer_pool *pool;

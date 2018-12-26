@@ -43,9 +43,10 @@ using srslte::uint32_to_uint8;
 
 namespace srsenb{
 
-bool s1ap::init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, srslte::log *s1ap_log_)
+bool s1ap::init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, x2ap_interface_s1ap *x2ap_, srslte::log *s1ap_log_)
 {
   rrc = rrc_;
+  x2ap = x2ap_;
   args = args_;
   s1ap_log = s1ap_log_;
 

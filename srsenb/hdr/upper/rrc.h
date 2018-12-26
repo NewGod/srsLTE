@@ -102,6 +102,7 @@ class rrc : public rrc_interface_pdcp,
             public rrc_interface_mac, 
             public rrc_interface_rlc,
             public rrc_interface_s1ap,
+            public rrc_interface_x2ap,
             public thread
 {
 public:
@@ -117,6 +118,7 @@ public:
     pdcp = NULL;
     gtpu = NULL;
     s1ap = NULL;
+    x2ap = NULL;
     rrc_log = NULL;
 
     bzero(&sr_sched, sizeof(sr_sched));
@@ -133,6 +135,7 @@ public:
             rlc_interface_rrc *rlc, 
             pdcp_interface_rrc *pdcp,
             s1ap_interface_rrc *s1ap,
+            x2ap_interface_rrc *x2ap,
             gtpu_interface_rrc *gtpu,
             srslte::log *log_rrc);
   
@@ -207,6 +210,7 @@ public:
     void send_ue_cap_enquiry();
     void parse_ul_dcch(uint32_t lcid, srslte::byte_buffer_t* pdu);
 
+    void handle_measurement_report(LIBLTE_RRC_MEASUREMENT_REPORT_STRUCT *msg);
     void handle_rrc_con_req(LIBLTE_RRC_CONNECTION_REQUEST_STRUCT *msg);
     void handle_rrc_con_reest_req(LIBLTE_RRC_CONNECTION_REESTABLISHMENT_REQUEST_STRUCT *msg);
     void handle_rrc_con_setup_complete(LIBLTE_RRC_CONNECTION_SETUP_COMPLETE_STRUCT *msg, srslte::byte_buffer_t *pdu);
@@ -239,6 +243,8 @@ public:
 
     void send_dl_ccch(LIBLTE_RRC_DL_CCCH_MSG_STRUCT *dl_ccch_msg);
     void send_dl_dcch(LIBLTE_RRC_DL_DCCH_MSG_STRUCT *dl_dcch_msg, srslte::byte_buffer_t *pdu = NULL);
+
+    bool should_handover();
 
     uint16_t rnti;
     rrc *parent;
@@ -342,6 +348,7 @@ private:
   pdcp_interface_rrc   *pdcp;
   gtpu_interface_rrc   *gtpu;
   s1ap_interface_rrc   *s1ap;
+  x2ap_interface_rrc   *x2ap;
   srslte::log          *rrc_log;
 
   typedef struct{

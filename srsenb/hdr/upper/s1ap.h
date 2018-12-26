@@ -63,10 +63,11 @@ typedef struct {
 
 class s1ap
     :public s1ap_interface_rrc
+    ,public s1ap_interface_x2ap
     ,public thread
 {
 public:
-  bool init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, srslte::log *s1ap_log_);
+  bool init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, x2ap_interface_s1ap *x2ap_, srslte::log *s1ap_log_);
   void stop();
   void get_metrics(s1ap_metrics_t &m);
 
@@ -92,6 +93,7 @@ private:
   static const int NONUE_STREAM_ID  = 0;
 
   rrc_interface_s1ap    *rrc;
+  x2ap_interface_s1ap   *x2ap;
   s1ap_args_t            args;
   srslte::log           *s1ap_log;
   srslte::byte_buffer_pool   *pool;
