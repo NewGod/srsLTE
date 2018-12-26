@@ -70,8 +70,12 @@ option(DISABLE_SIMD    "disable simd instructions"                OFF)
 option(ENABLE_GUI      "Enable GUI (using srsGUI)"                ON)
 option(ENABLE_UHD      "Enable UHD"                               ON)
 option(ENABLE_BLADERF  "Enable BladeRF"                           ON)
+
+option(ENABLE_YUNSDR   "Enable YunSDR"                            ON)
+
 option(ENABLE_SOAPYSDR "Enable SoapySDR"                          ON)
 option(ENABLE_HARDSIM  "Enable support for SIM cards"             ON)
+
 
 option(BUILD_STATIC    "Attempt to statically link external deps" OFF)
 option(RPATH           "Enable RPATH"                             OFF)
@@ -174,12 +178,18 @@ if(ENABLE_SOAPYSDR)
   endif(SOAPYSDR_FOUND)
 endif(ENABLE_SOAPYSDR)
 
-if(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND)
+find_package(yunsdr)
+if(YUNSDR_FOUND)
+  include_directories(${YUNSDR_INCLUDE_DIRS})
+  link_directories(${YUNSDR_LIBRARY_DIRS})
+endif(YUNSDR_FOUND)
+
+if(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND OR YUNSDR_FOUND)
   set(RF_FOUND TRUE CACHE INTERNAL "RF frontend found")
-else(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND)
+else(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND OR YUNSDR_FOUND)
   set(RF_FOUND FALSE CACHE INTERNAL "RF frontend found")
   add_definitions(-DDISABLE_RF)
-endif(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND)
+endif(BLADERF_FOUND OR UHD_FOUND OR SOAPYSDR_FOUND OR YUNSDR_FOUND)
 
 # Boost
 if(ENABLE_SRSUE OR ENABLE_SRSENB OR ENABLE_SRSEPC)
