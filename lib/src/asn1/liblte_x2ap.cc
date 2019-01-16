@@ -110,7 +110,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_uecontextrelease(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Old_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->Old_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -127,7 +126,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_uecontextrelease(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - New_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->New_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -231,7 +229,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_snstatustransfer(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Old_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->Old_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -248,7 +245,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_snstatustransfer(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - New_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->New_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -265,7 +261,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_snstatustransfer(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - E_RABs_SubjectToStatusTransfer_List
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_e_rabs_subjecttostatustransfer_list(&msg->E_RABs_SubjectToStatusTransfer_List, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -382,7 +377,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Old_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->Old_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -399,7 +393,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - Cause
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_cause(&msg->Cause, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -416,7 +409,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - TargetCell_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ecgi(&msg->TargetCell_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -433,7 +425,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - GUMMEI_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_gummei(&msg->GUMMEI_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -450,7 +441,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - UE_ContextInformation
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_contextinformation(&msg->UE_ContextInformation, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -467,7 +457,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - UE_HistoryInformation
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_historyinformation(&msg->UE_HistoryInformation, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -485,7 +474,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
 
     // ProtocolIE - TraceActivation
     if(msg->TraceActivation_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_traceactivation(&msg->TraceActivation, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -504,7 +492,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
 
     // ProtocolIE - SRVCCOperationPossible
     if(msg->SRVCCOperationPossible_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_srvccoperationpossible(&msg->SRVCCOperationPossible, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -523,7 +510,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
 
     // ProtocolIE - CSGMembershipStatus
     if(msg->CSGMembershipStatus_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_csgmembershipstatus(&msg->CSGMembershipStatus, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -542,7 +528,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
 
     // ProtocolIE - MobilityInformation
     if(msg->MobilityInformation_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_mobilityinformation(&msg->MobilityInformation, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -695,7 +680,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setuprequest(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - GlobalENB_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_globalenb_id(&msg->GlobalENB_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -712,7 +696,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setuprequest(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - ServedCells
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_servedcells(&msg->ServedCells, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -730,7 +713,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setuprequest(
 
     // ProtocolIE - GUGroupIDList
     if(msg->GUGroupIDList_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_gugroupidlist(&msg->GUGroupIDList, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -844,7 +826,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Old_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->Old_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -861,7 +842,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - New_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->New_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -878,7 +858,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - E_RABs_Admitted_List
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_e_rabs_admitted_list(&msg->E_RABs_Admitted_List, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -896,7 +875,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
 
     // ProtocolIE - E_RABs_NotAdmitted_List
     if(msg->E_RABs_NotAdmitted_List_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_e_rab_list(&msg->E_RABs_NotAdmitted_List, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -914,7 +892,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
     }
 
     // ProtocolIE - TargeteNBtoSource_eNBTransparentContainer
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_targetenbtosource_enbtransparentcontainer(&msg->TargeteNBtoSource_eNBTransparentContainer, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -932,7 +909,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequestacknowledge(
 
     // ProtocolIE - CriticalityDiagnostics
     if(msg->CriticalityDiagnostics_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_criticalitydiagnostics(&msg->CriticalityDiagnostics, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1066,7 +1042,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupresponse(
     uint8_t              *tmp_ptr;
 
 	// ProtocolIE - GlobalENB_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_globalenb_id(&msg->GlobalENB_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1083,7 +1058,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupresponse(
     *ptr += tmp_msg.N_bits;
 
 	// ProtocolIE - ServedCells
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_servedcells(&msg->ServedCells, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1101,7 +1075,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupresponse(
 
     // ProtocolIE - GUGroupIDList
     if(msg->GUGroupIDList_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_gugroupidlist(&msg->GUGroupIDList, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1120,7 +1093,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupresponse(
 
     // ProtocolIE - CriticalityDiagnostics
     if(msg->CriticalityDiagnostics_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_criticalitydiagnostics(&msg->CriticalityDiagnostics, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1239,7 +1211,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverpreparationfailure(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Old_eNB_UE_X2AP_ID
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_ue_x2ap_id(&msg->Old_eNB_UE_X2AP_ID, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1256,7 +1227,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverpreparationfailure(
     *ptr += tmp_msg.N_bits;
 
     // ProtocolIE - Cause
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_cause(&msg->Cause, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1274,7 +1244,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverpreparationfailure(
 
     // ProtocolIE - CriticalityDiagnostics
     if(msg->CriticalityDiagnostics_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_criticalitydiagnostics(&msg->CriticalityDiagnostics, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1388,7 +1357,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupfailure(
     uint8_t              *tmp_ptr;
 
     // ProtocolIE - Cause
-    tmp_msg.reset();
     tmp_ptr = tmp_msg.msg;
     /*if(liblte_x2ap_pack_cause(&msg->Cause, &tmp_ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1406,7 +1374,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupfailure(
 
     // ProtocolIE - TimeToWait
     if(msg->TimeToWait_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_timetowait(&msg->TimeToWait, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
@@ -1425,7 +1392,6 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_x2setupfailure(
 
     // ProtocolIE - GUGroupIDList
     if(msg->GUGroupIDList_present) {
-      tmp_msg.reset();
       tmp_ptr = tmp_msg.msg;
       /*if(liblte_x2ap_pack_gugroupidlist(&msg->GUGroupIDList, &tmp_ptr) != LIBLTE_SUCCESS) {
         return LIBLTE_ERROR_ENCODE_FAIL;
