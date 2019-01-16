@@ -41,11 +41,7 @@ SRSLTE_API char* rf_yunsdr_devname(void *h);
 
 SRSLTE_API int rf_yunsdr_close(void *h);
 
-SRSLTE_API void rf_yunsdr_set_tx_cal(void *h, srslte_rf_cal_t *cal);
-
-SRSLTE_API void rf_yunsdr_set_rx_cal(void *h, srslte_rf_cal_t *cal);
-
-SRSLTE_API int rf_yunsdr_start_rx_stream(void *h);
+SRSLTE_API int rf_yunsdr_start_rx_stream(void *h, bool now);
 
 SRSLTE_API int rf_yunsdr_stop_rx_stream(void *h);
 
@@ -124,4 +120,6 @@ SRSLTE_API int  rf_yunsdr_send_timed(void *h,
                                   bool blocking, 
                                   bool is_start_of_burst, 
                                   bool is_end_of_burst);
+
+SRSLTE_API srslte_rf_info_t* rf_yunsdr_get_info(void *h);
 
