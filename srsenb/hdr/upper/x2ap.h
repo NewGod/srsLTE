@@ -7,7 +7,7 @@
 #include "srslte/interfaces/enb_interfaces.h"
 
 #include "srslte/asn1/liblte_x2ap.h"
-#include "upper/x2ap_metrics.h"
+#include "x2ap_metrics.h"
 
 namespace srsenb
 {
