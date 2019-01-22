@@ -203,6 +203,7 @@ static rf_dev_t dev_yunsdr = {
   rf_yunsdr_set_tx_gain,
   rf_yunsdr_get_rx_gain,
   rf_yunsdr_get_tx_gain,
+  rf_yunsdr_get_info, 
   rf_yunsdr_set_rx_freq,
   rf_yunsdr_set_tx_srate,
   rf_yunsdr_set_tx_freq,
@@ -211,8 +212,6 @@ static rf_dev_t dev_yunsdr = {
   rf_yunsdr_recv_with_time_multi,
   rf_yunsdr_send_timed,
   .srslte_rf_send_timed_multi = rf_yunsdr_send_timed_multi,
-  rf_yunsdr_set_tx_cal,
-  rf_yunsdr_set_rx_cal
 };
 
 #endif

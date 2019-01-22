@@ -508,9 +508,6 @@ void rrc::parse_ul_ccch(uint16_t rnti, byte_buffer_t *pdu)
                       liblte_rrc_ul_ccch_msg_type_text[ul_ccch_msg.msg_type]);
 
     switch (ul_ccch_msg.msg_type) {
-      case LIBLTE_RRC_UL_DCCH_MSG_TYPE_MEASUREMENT_REPORT:
-        handle_measurement_report(&ul_dcch_msg.msg.measurement_report);
-        break;
       case LIBLTE_RRC_UL_CCCH_MSG_TYPE_RRC_CON_REQ:
         if (users.count(rnti)) {
           users[rnti].handle_rrc_con_req(&ul_ccch_msg.msg.rrc_con_req);
@@ -1012,6 +1009,9 @@ void rrc::ue::parse_ul_dcch(uint32_t lcid, byte_buffer_t *pdu)
   pdu->reset();
   
   switch(ul_dcch_msg.msg_type) {
+      case LIBLTE_RRC_UL_DCCH_MSG_TYPE_MEASUREMENT_REPORT:
+        handle_measurement_report(&ul_dcch_msg.msg.measurement_report);
+        break;
     case LIBLTE_RRC_UL_DCCH_MSG_TYPE_RRC_CON_SETUP_COMPLETE:
       handle_rrc_con_setup_complete(&ul_dcch_msg.msg.rrc_con_setup_complete, pdu);
       break;      

@@ -42,6 +42,7 @@
 #include "upper/rrc.h"
 #include "upper/gtpu.h"
 #include "upper/s1ap.h"
+#include "upper/x2ap.h"
 #include "upper/rlc.h"
 #include "upper/pdcp.h"
 

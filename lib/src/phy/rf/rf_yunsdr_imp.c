@@ -92,18 +92,7 @@ bool rf_yunsdr_rx_wait_lo_locked(void *h)
     return true;
 }
 
-void rf_yunsdr_set_tx_cal(void *h, srslte_rf_cal_t *cal)
-{
-    printf("TODO: implement rf_yunsdr_rx_wait_lo_locked()\n");
-    // not supported
-}
-
-void rf_yunsdr_set_rx_cal(void *h, srslte_rf_cal_t *cal)
-{
-    printf("TODO: implement rf_yunsdr_set_rx_cal()\n");
-}
-
-int rf_yunsdr_start_rx_stream(void *h)
+int rf_yunsdr_start_rx_stream(void *h, bool now)
 {
     rf_yunsdr_handler_t *handler = (rf_yunsdr_handler_t*) h;
 
@@ -412,7 +401,7 @@ int  rf_yunsdr_recv_with_time_multi(void *h,
 #endif
     //printf("rx_nsamples:%u, timestamp: %llu\n", nsamples, timestamp);
     //timestamp_to_secs(handler->sample_rate, timestamp, secs, frac_secs);
-    srslte_vec_convert_if(handler->rx_buffer, data[0], 16384., 2*nsamples);
+    srslte_vec_convert_if(handler->rx_buffer, 16384.0, (float*)data[0], 2*nsamples);
     //printf("RX: sec:%u, frac_secs:%f\n", *(uint64_t *)secs, *frac_secs);
 
     return nsamples;
@@ -465,7 +454,7 @@ int rf_yunsdr_send_timed(void *h,
         return -1;
     }
 
-    srslte_vec_convert_fi(data, handler->tx_buffer, 16384., 2*nsamples);
+    srslte_vec_convert_fi(data, (float)16384., handler->tx_buffer, 2*nsamples);
     //srslte_vec_convert_fi(data, (int16_t *)tx_meta->payload, 16384., 2*nsamples);
     secs_to_timestamps(handler->sample_rate, secs, frac_secs, &timestamp);
 
@@ -502,4 +491,9 @@ int rf_yunsdr_send_timed(void *h,
     }
 
     return nsamples;
+}
+
+srslte_rf_info_t * rf_yunsdr_get_info(void* h){
+    printf("TODO: implement rf_yunsdr_get_info()\n");
+	return NULL;
 }

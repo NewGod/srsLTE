@@ -1,5 +1,6 @@
-#include "upper/x2ap.h"
-#include "upper/common_enb.h"
+#include "srsenb/hdr/upper/x2ap.h"
+#include "srsenb/hdr/upper/common_enb.h"
+#include "srslte/common/bcd_helpers.h"
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -211,7 +212,7 @@ bool x2ap::setup_x2ap()
     x2setup->GlobalENB_ID.ext = false;
     x2setup->GlobalENB_ID.iE_Extensions_present = false;
     uint32_t plmn;
-    x2ap_mccmnc_to_plmn(args.mcc, args.mnc, &plmn);
+	srslte::x2ap_mccmnc_to_plmn(args.mcc, args.mnc, &plmn);
     tmp32 = htonl(plmn);
     x2setup->GlobalENB_ID.pLMN_Identity.buffer[0] = ((uint8_t*)&tmp32)[1];
     x2setup->GlobalENB_ID.pLMN_Identity.buffer[1] = ((uint8_t*)&tmp32)[2];
