@@ -60,6 +60,7 @@ void x2ap::run_thread()
 {
 	srslte::byte_buffer_t *pdu = pool_allocate;
 	//printf("%s\n", args.gtp_bind_addr.c_str());
+    printf("%d\n", args.active_status);
     uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
     running = true;
 
