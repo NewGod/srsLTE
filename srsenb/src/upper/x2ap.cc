@@ -83,7 +83,6 @@ void x2ap::run_thread()
     while(running)
     {
         pdu->reset();
-        pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
         if(args.active_status == 1)
         pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
         else if(args.active_status == 0)
