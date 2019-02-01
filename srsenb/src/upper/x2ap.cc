@@ -59,8 +59,9 @@ void x2ap::get_metrics(x2ap_metrics_t &m)
 void x2ap::run_thread()
 {
 	srslte::byte_buffer_t *pdu = pool_allocate;
+    args.active_status -= 48;
 	//printf("%s\n", args.gtp_bind_addr.c_str());
-    printf("%d\n", args.active_status);
+    //printf("%d\n", args.active_status);
     uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
     running = true;
 
