@@ -113,9 +113,11 @@ bool x2ap::connect_neighbour()
     if(args.active_status == 1) // active connect
     {
         x2ap_log->info("Connecting to neighbour ENB actively: %s:%d\n", args.neighbour_addr.c_str(), X2AP_PORT);
+        x2ap_log->console("Connecting to neighbour ENB actively: %s:%d\n", args.neighbour_addr.c_str(), X2AP_PORT);
         if((socket_fd = socket(ADDR_FAMILY, SOCK_TYPE, PROTO)) == -1)
         {
             x2ap_log->error("Failed to create X2AP socket\n");
+            x2ap_log->console("Failed to create X2AP socket\n");
             return false;
         }
 
@@ -127,9 +129,16 @@ bool x2ap::connect_neighbour()
         if(inet_pton(AF_INET, args.gtp_bind_addr.c_str(), &(local_addr.sin_addr)) != 1)
         {
             x2ap_log->error("Error converting IP address (%s) to sockaddr_in structure\n", args.gtp_bind_addr.c_str());
+            x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.gtp_bind_addr.c_str());
             return false;
         }
-        bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
+        int ret = bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
+        if(ret < 0)
+        {
+        	x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
+            x2ap_log->console("Error Binding\n", args.gtp_bind_addr.c_str());
+            return false;
+        }
 
         memset(&neighbour_enb_addr, 0, sizeof(struct sockaddr_in));
         neighbour_enb_addr.sin_family = ADDR_FAMILY;
@@ -137,11 +146,13 @@ bool x2ap::connect_neighbour()
         if(inet_pton(AF_INET, args.neighbour_addr.c_str(), &(neighbour_enb_addr.sin_addr)) != 1)
         {
             x2ap_log->error("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
+            x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
             return false;
         }
         if(connect(socket_fd, (struct sockaddr*)&neighbour_enb_addr, sizeof(neighbour_enb_addr)) == -1)
         {
             x2ap_log->error("Failed to establish connection to neighbour ENB\n");
+            x2ap_log->console("Failed to establish connection to neighbour ENB\n");
             return false;
         }
         x2ap_log->info("SCTP socket established with neighbour ENB\n");
@@ -150,9 +161,11 @@ bool x2ap::connect_neighbour()
     else if(args.active_status == 0) // passive connect
     {
         x2ap_log->info("Passively waiting for neighbour ENB connection\n");
+        x2ap_log->console("Passively waiting for neighbour ENB connection\n");
         if((socket_fd = socket(ADDR_FAMILY, SOCK_TYPE, PROTO)) == -1)
         {
             x2ap_log->error("Failed to create X2AP socket\n");
+            x2ap_log->console("Failed to create X2AP socket\n");
             return false;
         }
 
@@ -163,14 +176,22 @@ bool x2ap::connect_neighbour()
         if(inet_pton(AF_INET, args.gtp_bind_addr.c_str(), &(local_addr.sin_addr)) != 1)
         {
             x2ap_log->error("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
+            x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
             return false;
         }
-        bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
+        int ret = bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
+        if(ret < 0)
+        {
+        	x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
+            x2ap_log->console("Error Binding\n", args.gtp_bind_addr.c_str());
+            return false;
+        }
 
         if(listen(socket_fd,SOMAXCONN) != 0)
         {
             close(socket_fd);
             x2ap_log->error("Error in SCTP listen\n");
+            x2ap_log->console("Error in SCTP listen\n");
             return false;
         }
 
@@ -178,6 +199,7 @@ bool x2ap::connect_neighbour()
         if(conn_fd == -1)
         {
             x2ap_log->error("Error in SCTP accept\n");
+            x2ap_log->console("Error in SCTP accept\n");
             close(conn_fd);
             close(socket_fd);
             return false;
@@ -189,6 +211,7 @@ bool x2ap::connect_neighbour()
     else
     {
         x2ap_log->error("Wrong active_status argument\n");
+        x2ap_log->console("Wrong active_status argument\n");
         return false;
     }
 }
