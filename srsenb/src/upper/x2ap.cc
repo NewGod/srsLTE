@@ -84,8 +84,12 @@ void x2ap::run_thread()
     {
         pdu->reset();
         pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
+        if(args.active_status == 1)
+        pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
+        else if(args.active_status == 0)
+        pdu->N_bytes = recv(conn_fd, pdu->msg, sz, 0);
 
-        if(pdu->N_bytes <= 0)
+        if((int)pdu->N_bytes <= 0)
         {
             neighbour_connected = false;
             do
@@ -383,6 +387,7 @@ bool x2ap::handle_unsuccessfuloutcome(LIBLTE_X2AP_UNSUCCESSFULOUTCOME_STRUCT *ms
 bool x2ap::handle_x2setuprequest(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg)
 {
     x2ap_log->info("Received X2setuprequest\n");
+    x2ap_log->console("Received X2setuprequest\n");
     //TODO: send_x2setupresponse();
     return true;
 }
@@ -390,6 +395,7 @@ bool x2ap::handle_x2setuprequest(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg)
 bool x2ap::handle_handoverrequest(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_STRUCT *msg)
 {
     x2ap_log->info("Received Handoverrequest\n");
+    x2ap_log->console("Received Handoverrequest\n");
     //TODO: send_handoverrequestacknowledge();
     return true;
 }
@@ -397,6 +403,7 @@ bool x2ap::handle_handoverrequest(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_STRUCT *ms
 bool x2ap::handle_snstatustransfer(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *msg)
 {
     x2ap_log->info("Received Snstatustransfer\n");
+    x2ap_log->console("Received Snstatustransfer\n");
     //TODO: send_uecontextrelease();
     return true;
 }
@@ -404,6 +411,7 @@ bool x2ap::handle_snstatustransfer(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *
 bool x2ap::handle_uecontextrelease(LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *msg)
 {
     x2ap_log->info("Received Uecontextrelease\n");
+    x2ap_log->console("Received Uecontextrelease\n");
     //TODO: release_ue_cxt();
     return true;
 }
@@ -411,6 +419,7 @@ bool x2ap::handle_uecontextrelease(LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *
 bool x2ap::handle_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_STRUCT *msg)
 {
     x2ap_log->info("Received Handoverrequestacknowledge\n");
+    x2ap_log->console("Received Handoverrequestacknowledge\n");
     //TODO: send_snstatustransfer();
     return true;
 }
@@ -418,6 +427,7 @@ bool x2ap::handle_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST
 bool x2ap::handle_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPRESPONSE_STRUCT *msg)
 {
     x2ap_log->info("Received X2SetupResponse\n");
+    x2ap_log->console("Received X2SetupResponse\n");
     x2setupresponse = *msg;
     neighbour_connected = true;
     return true;
