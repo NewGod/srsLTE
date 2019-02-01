@@ -249,7 +249,8 @@ mbms_gw::init_m1_u(mbms_gw_args_t *args)
 
   bzero(&m_m1u_multi_addr,sizeof(m_m1u_multi_addr));
   m_m1u_multi_addr.sin_family = AF_INET;
-  m_m1u_multi_addr.sin_port = htons(GTPU_RX_PORT+1);
+  //m_m1u_multi_addr.sin_port = htons(GTPU_RX_PORT+1);
+  m_m1u_multi_addr.sin_port = htons(2160+1);
   m_m1u_multi_addr.sin_addr.s_addr = inet_addr(args->m1u_multi_addr.c_str());
   m_mbms_gw_log->info("Initialized M1-U\n");
 

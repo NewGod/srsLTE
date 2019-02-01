@@ -128,7 +128,8 @@ void gtpu::write_pdu(uint16_t rnti, uint32_t lcid, srslte::byte_buffer_t* pdu)
   struct sockaddr_in servaddr;
   servaddr.sin_family      = AF_INET;
   servaddr.sin_addr.s_addr = htonl(rnti_bearers[rnti].spgw_addrs[lcid]);
-  servaddr.sin_port        = htons(GTPU_PORT);
+  //servaddr.sin_port        = htons(GTPU_PORT);
+  servaddr.sin_port		   = htons(2152);
 
   if(!gtpu_write_header(&header, pdu, gtpu_log)){
     gtpu_log->error("Error writing GTP-U Header. Flags 0x%x, Message Type 0x%x\n", header.flags, header.message_type);
