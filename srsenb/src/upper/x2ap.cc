@@ -59,7 +59,7 @@ void x2ap::get_metrics(x2ap_metrics_t &m)
 void x2ap::run_thread()
 {
 	srslte::byte_buffer_t *pdu = pool_allocate;
-
+	//printf("%s\n", args.gtp_bind_addr.c_str());
     uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
     running = true;
 
@@ -123,6 +123,7 @@ bool x2ap::connect_neighbour()
         memset(&local_addr, 0, sizeof(local_addr));
         local_addr.sin_family = ADDR_FAMILY;
         local_addr.sin_port = 0; // Any local port will do
+
         if(inet_pton(AF_INET, args.gtp_bind_addr.c_str(), &(local_addr.sin_addr)) != 1)
         {
             x2ap_log->error("Error converting IP address (%s) to sockaddr_in structure\n", args.gtp_bind_addr.c_str());

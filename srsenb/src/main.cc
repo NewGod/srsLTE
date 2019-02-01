@@ -78,6 +78,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
     ("enb.mnc",           bpo::value<string>(&mnc)->default_value("01"),                           "Mobile Network Code")
     ("enb.mme_addr",      bpo::value<string>(&args->enb.s1ap.mme_addr)->default_value("127.0.0.1"),"IP address of MME for S1 connection")
     ("enb.gtp_bind_addr", bpo::value<string>(&args->enb.s1ap.gtp_bind_addr)->default_value("192.168.3.1"), "Local IP address to bind for GTP connection")
+    ("enb.x2_bind_addr", bpo::value<string>(&args->enb.x2ap.gtp_bind_addr)->default_value("192.168.3.1"), "Local IP address to bind for GTP connection")
     ("enb.s1c_bind_addr", bpo::value<string>(&args->enb.s1ap.s1c_bind_addr)->default_value("192.168.3.1"), "Local IP address to bind for S1AP connection")
     ("enb.active_status", bpo::value<uint8_t>(&args->enb.x2ap.active_status)->default_value(0),  "Connective activity of ENB (0: passive; 1: active)")
     ("enb.neighbour_addr", bpo::value<string>(&args->enb.x2ap.neighbour_addr)->default_value("127.0.0.1"), "IP address of Neighbour ENB for X2 connection")
@@ -225,6 +226,7 @@ void parse_args(all_args_t *args, int argc, char* argv[]) {
   bpo::variables_map vm;
   bpo::store(bpo::command_line_parser(argc, argv).options(cmdline_options).positional(p).run(), vm);
   bpo::notify(vm);
+
 
   // help option was given - print usage and exit
   if (vm.count("help")) {
