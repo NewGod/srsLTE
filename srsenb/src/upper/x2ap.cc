@@ -286,15 +286,18 @@ bool x2ap::setup_x2ap()
     
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending x2SetupRequest");
-
-    ssize_t n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
+    if(args.active_status == 1)
+    {
+      ssize_t n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) 
     {
         x2ap_log->error("Failed to send x2SetupRequest\n");
         return false;
+    }  
     }
+    
     return true;
 }
 
