@@ -515,7 +515,7 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 setup response\n");
     x2ap_log->console("Sending X2 setup response\n");
 
-    ssize_t n_sent;
+    
     ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
@@ -554,7 +554,7 @@ bool x2ap::send_handoverrequest()
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 handover request\n");
     x2ap_log->console("Sending X2 handover request\n");
 
-    ssize_t n_sent;
+    
     ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
@@ -591,7 +591,7 @@ bool x2ap::send_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_S
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 handover ack\n");
     x2ap_log->console("Sending X2 handover ack\n");
 
-    ssize_t n_sent;
+    
     ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
@@ -625,7 +625,7 @@ bool x2ap::send_snstatustransfer(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending SNStatusTransfer\n");
     x2ap_log->console("Sending SNStatusTransfer\n");
-    ssize_t n_sent;
+    
     ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
@@ -659,7 +659,7 @@ bool x2ap::send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *ms
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending UEContextRelease\n");
     x2ap_log->console("Sending UEContextRelease\n");
 
-    ssize_t n_sent;
+    
     ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
