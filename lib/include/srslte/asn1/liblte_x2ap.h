@@ -1,12 +1,13 @@
 #ifndef LIBLTE_X2AP_H
 #define LIBLTE_X2AP_H
 
-
+typedef enum {one, two, four} AA;
 /*******************************************************************************
 /* INCLUDES
 ********************************************************************************/
 
 #include "liblte_common.h"
+#include <sys/timerfd.h>
 
 /*******************************************************************************
                               LOGGING
@@ -126,13 +127,13 @@ typedef enum{
   LIBLTE_X2AP_IE_ID_CELLTOREPORT_ITEM                             = 31,
   LIBLTE_X2AP_IE_ID_CELLMEASUREMENTRESULT                         = 32,
   LIBLTE_X2AP_IE_ID_CELLMEASUREMENTRESULT_ITEM                    = 33,
-  LIBLTE_X2AP_IE_GUGROUPIDTOADDLIST                               = 34,
+  LIBLTE_X2AP_IE_ID_GUGROUPIDTOADDLIST                               = 34,
   LIBLTE_X2AP_IE_ID_GUGROUPIDTODELETELIST                         = 35,
   LIBLTE_X2AP_IE_ID_SRVCCOPERATIONPOSSIBLE                        = 36,
   LIBLTE_X2AP_IE_ID_MEASUREMENT_ID                                = 37,
   LIBLTE_X2AP_IE_ID_REPORTCHARATERISTICS                          = 38,
   LIBLTE_X2AP_IE_ID_ENB1_MEASUREMENT_ID                           = 39,
-  LIBLTE_X2AP_IE_ID_ENB2_MEASUREMNET_ID                           = 40,
+  LIBLTE_X2AP_IE_ID_ENB2_MEASUREMENT_ID                           = 40,
   LIBLTE_X2AP_IE_ID_NUMBER_OF_ANTENNAPORTS                        = 41,
   LIBLTE_X2AP_IE_ID_COMPOSITEAVAILABLECAPACITYGROUP               = 42,
   LIBLTE_X2AP_IE_ID_ENB1_CELL_ID                                  = 43,
@@ -142,7 +143,7 @@ typedef enum{
   LIBLTE_X2AP_IE_ID_ENB2_MOBILITY_PARAMETERS_MODIFICATION_RANGE   = 47,
   LIBLTE_X2AP_IE_ID_FAILURECELLPCI                                = 48,
   LIBLTE_X2AP_IE_ID_RE_ESTABLISHMENTCELLECGI                      = 49,
-  LIBLTE_X2AP_IE_FAILURECELLCRNTI                                 = 50,
+  LIBLTE_X2AP_IE_ID_FAILURECELLCRNTI                                 = 50,
   LIBLTE_X2AP_IE_ID_SHORTMAC_I                                    = 51,
   LIBLTE_X2AP_IE_ID_SOURCECELLECGI                                = 52,
   LIBLTE_X2AP_IE_ID_FAILURECELLECGI                               = 53,
@@ -301,7 +302,7 @@ typedef enum{
   LIBLTE_X2AP_CRITICALITY_IGNORE,
   LIBLTE_X2AP_CRITICALITY_NOTIFY,
   LIBLTE_X2AP_CRITICALITY_N_ITEMS,
-}LIBLTE_X2AP_CRITICALITY_ENUM;
+} LIBLTE_X2AP_CRITICALITY_ENUM;
 static const char liblte_x2ap_criticality_text[LIBLTE_X2AP_CRITICALITY_N_ITEMS][80] = {
   "reject",
   "ignore",
@@ -746,7 +747,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_earfcn(
 /* ProtocolIE EARFCNExtension INTEGER
 ********************************************************************************/
 typedef struct{
-uint16_t EARFCNExtension;
+// uint16_t EARFCNExtension; changed by ZY
+uint32_t EARFCNExtension;
 }LIBLTE_X2AP_EARFCNEXTENSION_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_earfcnextension(
@@ -999,7 +1001,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_time_ue_stayedincell_enhancedgranularity(
 /* ProtocolIE UE_S1AP_ID INTEGER
 ********************************************************************************/
 typedef struct{
-uint64_t UE_S1AP_ID;
+// uint64_t UE_S1AP_ID; // change to uint32_t by ZY
+uint32_t UE_S1AP_ID;
 }LIBLTE_X2AP_UE_S1AP_ID_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_ue_s1ap_id(
@@ -1072,7 +1075,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_ul_total_prb_usage(
 ********************************************************************************/
 #define LIBLTE_X2AP_CRNTI_BIT_STRING_LEN 16
 typedef struct{
-  uint8_t  buffer[16];
+  uint8_t  buffer[LIBLTE_X2AP_CRNTI_BIT_STRING_LEN];
 }LIBLTE_X2AP_CRNTI_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_crnti(
@@ -1362,11 +1365,11 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_transportlayeraddress(
 /*******************************************************************************
 /* ProtocolIE UL_HighInterferenceIndication DYNAMIC BIT STRING
 ********************************************************************************/
-// lb:1, ub:120
+// lb:1, ub:110  changed by ZY
 typedef struct{
   bool     ext;
   uint32_t n_bits;
-  uint8_t  buffer[120];
+  uint8_t  buffer[110]; // changed by ZY
 }LIBLTE_X2AP_UL_HIGHINTERFERENCEINDICATION_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_ul_highinterferenceindication(
@@ -1441,10 +1444,11 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_lac(
 /*******************************************************************************
 /* ProtocolIE LastVisitedUTRANCellInformation DYNAMIC OCTET STRING
 ********************************************************************************/
-// lb:0, ub:16318
+// lb:0, ub:16318  <-- This is not consistent with ASN.1, should be
+// lb:None  ub:None
 typedef struct{
   uint32_t n_octets;
-  uint8_t  buffer[16318];
+  uint8_t  buffer[16384]; // WARNING: this is an artificial boundary
 }LIBLTE_X2AP_LASTVISITEDUTRANCELLINFORMATION_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_lastvisitedutrancellinformation(
@@ -1517,10 +1521,11 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_plmn_identity(
 /*******************************************************************************
 /* ProtocolIE RRC_Context DYNAMIC OCTET STRING
 ********************************************************************************/
-// lb:0, ub:16318
+// lb:0, ub:16318, this is artificial limit
+// lb:0, ub:None is the real limit, by ZY
 typedef struct{
   uint32_t n_octets;
-  uint8_t  buffer[16318];
+  uint8_t  buffer[16318]; // WARNING: artificial limit
 }LIBLTE_X2AP_RRC_CONTEXT_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_rrc_context(
@@ -1548,7 +1553,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_tac(
 /*******************************************************************************
 /* ProtocolIE TargetCellInUTRAN DYNAMIC OCTET STRING
 ********************************************************************************/
-// lb:0, ub:16318
+// lb:0, ub:16318, this is artificial limit
+// lb:0, ub:None is the real limit, by ZY
 typedef struct{
   uint32_t n_octets;
   uint8_t  buffer[16318];
@@ -1564,7 +1570,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_targetcellinutran(
 /*******************************************************************************
 /* ProtocolIE TargeteNBtoSource_eNBTransparentContainer DYNAMIC OCTET STRING
 ********************************************************************************/
-// lb:0, ub:16318
+// lb:0, ub:16318, this is artificial limit
+// lb:0, ub:None is the real limit, by ZY
 typedef struct{
   uint32_t n_octets;
   uint8_t  buffer[16318];
@@ -1580,7 +1587,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_targetenbtosource_enbtransparentcontainer(
 /*******************************************************************************
 /* ProtocolIE UL_RLF_Report_Container DYNAMIC OCTET STRING
 ********************************************************************************/
-// lb:0, ub:16318
+// lb:0, ub:16318, this is artificial limit
+// lb:0, ub:None is the real limit, by ZY
 typedef struct{
   uint32_t n_octets;
   uint8_t  buffer[16318];
@@ -1608,7 +1616,7 @@ typedef enum{
   LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_SSP6,
   LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_SSP7,
   LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_SSP8,
-  LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_SSP9,
+  // LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_SSP9, comment out by ZY, not present in ASN.1
   LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_N_ITEMS,
 }LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_ENUM;
 static const char liblte_x2ap_additionalspecialsubframepatterns_text[LIBLTE_X2AP_ADDITIONALSPECIALSUBFRAMEPATTERNS_N_ITEMS][80] = {
@@ -1621,7 +1629,7 @@ static const char liblte_x2ap_additionalspecialsubframepatterns_text[LIBLTE_X2AP
   "ssp6",
   "ssp7",
   "ssp8",
-  "ssp9",
+  // "ssp9", comment out by ZY, not present in ASN.1
 };
 
 typedef struct{
@@ -2371,11 +2379,13 @@ typedef struct{
 }LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM_EXT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_radioframeallocationperiod(
-  LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM                    *ie,
+//   LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM                    *ie, changed by ZY
+  LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM_EXT                    *ie,
   uint8_t                                                     **ptr);
 LIBLTE_ERROR_ENUM liblte_x2ap_unpack_radioframeallocationperiod(
   uint8_t                                                     **ptr,
-  LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM                    *ie);
+// LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM                    *ie); changed by ZY
+LIBLTE_X2AP_RADIOFRAMEALLOCATIONPERIOD_ENUM_EXT                    *ie);
 
 /*******************************************************************************
 /* ProtocolIE Registration_Request ENUMERATED
@@ -2547,11 +2557,13 @@ typedef struct{
 }LIBLTE_X2AP_RNTP_THRESHOLD_ENUM_EXT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_rntp_threshold(
-  LIBLTE_X2AP_RNTP_THRESHOLD_ENUM                           *ie,
+//   LIBLTE_X2AP_RNTP_THRESHOLD_ENUM                           *ie, changed by ZY
+   LIBLTE_X2AP_RNTP_THRESHOLD_ENUM_EXT                           *ie,
   uint8_t                                                     **ptr);
 LIBLTE_ERROR_ENUM liblte_x2ap_unpack_rntp_threshold(
   uint8_t                                                     **ptr,
-  LIBLTE_X2AP_RNTP_THRESHOLD_ENUM                           *ie);
+//   LIBLTE_X2AP_RNTP_THRESHOLD_ENUM                           *ie); changed by ZY
+   LIBLTE_X2AP_RNTP_THRESHOLD_ENUM_EXT                         *ie);
 
 
 /*******************************************************************************
@@ -2568,7 +2580,7 @@ static const char liblte_x2ap_rrcconnreestabindicator_text[LIBLTE_X2AP_RRCCONNRE
   "handoverFailure",
   "otherFailure",
 };
-
+//Luca: fix the name ronn->conn
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_RRCCONNREESTABINDICATOR_ENUM e;
@@ -2577,7 +2589,7 @@ typedef struct{
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_rrcconnreestabindicator(
   LIBLTE_X2AP_RRCCONNREESTABINDICATOR_ENUM_EXT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_rrcronnreestabindicator(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_rrcconnreestabindicator(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_RRCCONNREESTABINDICATOR_ENUM_EXT                 *ie);
 
@@ -2600,7 +2612,7 @@ typedef struct{
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_rrcconnsetupindicator(
   LIBLTE_X2AP_RRCCONNSETUPINDICATOR_ENUM_EXT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_rrcronnsetupindicator(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_rrcconnsetupindicator(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_RRCCONNSETUPINDICATOR_ENUM_EXT                 *ie);
 
@@ -2862,7 +2874,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_ul_interferenceoverloadindication_item(
 typedef struct{
   bool                                                         ext;
   uint8_t abs_pattern_info[40]; // BIT STRING
-  enum numberofCellSpecificAntennaPorts {one, two, four};
+  // enum numberofCellSpecificAntennaPorts {one, two, four}; wrong. fixed by ZY.
+  AA numberofCellSpecificAntennaPorts;
   uint8_t measurement_subset[40]; // BIT STRING
   LIBLTE_X2AP_PROTOCOLEXTENSIONCONTAINER_STRUCT iE_Extensions;
   bool iE_Extensions_present;
@@ -2895,7 +2908,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_absinformationfdd_ext(
 typedef struct{
   bool                                                         ext;
   uint8_t abs_pattern_info[70]; // BIT STRING
-  enum numberofCellSpecificAntennaPorts {one, two, four};
+  // enum numberofCellSpecificAntennaPorts {one, two, four}; wrong. fixed by ZY.
+  AA numberofCellSpecificAntennaPorts;
   uint8_t measurement_subset[70]; // BIT STRING
   LIBLTE_X2AP_PROTOCOLEXTENSIONCONTAINER_STRUCT iE_Extensions;
   bool iE_Extensions_present;
@@ -3185,7 +3199,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_allocationandretentionpriority_ext(
 // lb:1, ub:6
 typedef struct{
   uint32_t                                                     len;
-  LIBLTE_X2AP_TBCD_STRING_STRUCT                               buffer[6];
+  // LIBLTE_X2AP_TBCD_STRING_STRUCT                               buffer[6]; wrong, fixed by ZY
+  LIBLTE_X2AP_PLMN_IDENTITY_STRUCT                             buffer[6];
 }LIBLTE_X2AP_BROADCASTPLMNS_ITEM_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_broadcastplmns_item(
@@ -3237,7 +3252,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_cause(
 ********************************************************************************/
 typedef struct{
   bool                                                         ext;
-  LIBLTE_X2AP_TBCD_STRING_STRUCT                               pLMN_Identity;
+  // LIBLTE_X2AP_TBCD_STRING_STRUCT                               pLMN_Identity; error, fixed by ZY
+  LIBLTE_X2AP_PLMN_IDENTITY_STRUCT                           pLMN_Identity;
   LIBLTE_X2AP_EUTRANCELLIDENTIFIER_STRUCT                   eUTRANcellIdentifier;
   LIBLTE_X2AP_PROTOCOLEXTENSIONCONTAINER_STRUCT                iE_Extensions;
   bool                                                         iE_Extensions_present;
@@ -4845,7 +4861,7 @@ typedef struct{
   bool                                                         ext;
   uint8_t rNTP_PerPRB[110];
   LIBLTE_X2AP_RNTP_THRESHOLD_ENUM_EXT                          rNTP_Threshold;
-  enum numberOfCellSpecificAntennaPorts {one, two, four};
+  AA numberOfCellSpecificAntennaPorts;
   uint32_t p_B;
   uint32_t pDCCH_InterferenceImpact;
   LIBLTE_X2AP_PROTOCOLEXTENSIONCONTAINER_STRUCT                iE_Extensions;
@@ -4919,10 +4935,11 @@ typedef struct{
   bool                                                         iE_Extensions_present;
 }LIBLTE_X2AP_SERVEDCELL_INFORMATION_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedCell(
+//func name fixed by Luca
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedcell_information(
   LIBLTE_X2AP_SERVEDCELL_INFORMATION_STRUCT                           *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell_information(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_SERVEDCELL_INFORMATION_STRUCT                           *ie);
 
@@ -4955,6 +4972,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell_information_ext(
 /*******************************************************************************
 /* ProtocolIE ServedCell SEQUENCE
 ********************************************************************************/
+//Luca: capital letter fix
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_SERVEDCELL_INFORMATION_STRUCT                    servedCellInfo;
@@ -4964,7 +4982,7 @@ typedef struct{
   bool                                                         iE_Extensions_present;
 }LIBLTE_X2AP_SERVEDCELL_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedCell(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedcell(
   LIBLTE_X2AP_SERVEDCELL_STRUCT                           *ie,
   uint8_t                                                     **ptr);
 LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell(
@@ -4977,7 +4995,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell(
 // lb:1, ub:256
 typedef struct{
   uint32_t                                                     len;
-  LIBLTE_X2AP_SERVEDCELL_STRUCT                          buffer[32]; //WARNING: Artificial limit to reduce memory footprint
+  LIBLTE_X2AP_SERVEDCELL_STRUCT                          buffer[256]; //WARNING: Artificial limit to reduce memory footprint
 }LIBLTE_X2AP_SERVEDCELLS_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedcells(
@@ -5445,10 +5463,10 @@ typedef struct{
   LIBLTE_X2AP_E_RABS_TOBESETUP_ITEM_STRUCT                     E_RABs_ToBeSetup_Item;
 }LIBLTE_X2AP_MESSAGE_E_RABS_TOBESETUP_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_e_rabs_tobesetup_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_e_rabs_tobesetup_item(
   LIBLTE_X2AP_MESSAGE_E_RABS_TOBESETUP_ITEM_STRUCT           *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rab_tobesetup_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_e_rab_tobesetup_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_E_RABS_TOBESETUP_ITEM_STRUCT           *ie);
 
@@ -5573,7 +5591,7 @@ typedef struct{
   LIBLTE_X2AP_GTPTUNNELENDPOINT_STRUCT                         uL_GTP_TunnelEndpoint;
   bool                                                         uL_GTP_TunnelEndpoint_present;
   LIBLTE_X2AP_GTPTUNNELENDPOINT_STRUCT                         dL_GTP_TunnelEndpoint;
-  bool                                                         dL_GTP_TunnelEndpoint_presnet;
+  bool                                                         dL_GTP_TunnelEndpoint_present;
   LIBLTE_X2AP_PROTOCOLEXTENSIONCONTAINER_STRUCT                iE_Extensions;
   bool                                                         iE_Extensions_present;
 }LIBLTE_X2AP_E_RABS_ADMITTED_ITEM_STRUCT;
@@ -5607,10 +5625,10 @@ typedef struct{
   LIBLTE_X2AP_E_RABS_ADMITTED_ITEM_STRUCT                      E_RABs_Admitted_Item;
 }LIBLTE_X2AP_MESSAGE_E_RABS_ADMITTED_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_e_rabs_admitted_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_e_rabs_admitted_item(
   LIBLTE_X2AP_MESSAGE_E_RABS_ADMITTED_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_admitted_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_e_rabs_admitted_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_E_RABS_ADMITTED_ITEM_STRUCT                 *ie);
 
@@ -5768,10 +5786,10 @@ typedef struct{
   LIBLTE_X2AP_E_RABS_SUBJECTTOSTATUSTRANSFER_ITEM_STRUCT       E_RABs_SubjectToStatusTransfer_Item;
 }LIBLTE_X2AP_MESSAGE_E_RABS_SUBJECTTOSTATUSTRANSFER_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_e_rabs_subjecttostatustransfer_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_e_rabs_subjecttostatustransfer_item(
   LIBLTE_X2AP_MESSAGE_E_RABS_SUBJECTTOSTATUSTRANSFER_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_subjecttostatustransfer_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_e_rabs_subjecttostatustransfer_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_E_RABS_SUBJECTTOSTATUSTRANSFER_ITEM_STRUCT                 *ie);
 
@@ -5875,15 +5893,15 @@ typedef struct{
   LIBLTE_X2AP_CAUSE_STRUCT                                     Cause;
   bool                                                         Cause_present;
   LIBLTE_X2AP_CRITICALITYDIAGNOSTICS_STRUCT                    CriticalityDiagnostics;
-  bool                                                         criticalityDiagnostics_present;
+  bool                                                         CriticalityDiagnostics_present;
 }LIBLTE_X2AP_MESSAGE_ERRORINDICATION_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_errorindication(
-  LIBLTE_X2AP_MESSAGE_ERRORINDICATION_STRUCT                    *ie,
+  LIBLTE_X2AP_MESSAGE_ERRORINDICATION_STRUCT                    *msg,
   uint8_t                                                     **ptr);
 LIBLTE_ERROR_ENUM liblte_x2ap_unpack_errorindication(
   uint8_t                                                     **ptr,
-  LIBLTE_X2AP_MESSAGE_ERRORINDICATION_STRUCT                    *ie);
+  LIBLTE_X2AP_MESSAGE_ERRORINDICATION_STRUCT                    *msg);
 
 /*-- **************************************************************
  *--
@@ -6045,8 +6063,8 @@ typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_ABSINFORMATION_STRUCT                            ABSInformation;
   bool                                                         ABSInformation_present;
-  LIBLTE_X2AP_INVOKEINDICATION_ENUM_EXT                        InvokedIndication;
-  bool                                                         InvokedIndication_present;
+  LIBLTE_X2AP_INVOKEINDICATION_ENUM_EXT                        InvokeIndication; //change by Luca, invoke.
+  bool                                                         InvokeIndication_present;
 }LIBLTE_X2AP_MESSAGE_CELLINFORMATION_ITEM_EXT_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_cellinformation_item_ext(
@@ -6059,15 +6077,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_cellinformation_item_ext(
 /*******************************************************************************
 /* Protocol Message CellInformation_Item STRUCT
 ********************************************************************************/
+// Luca: fixed function name, add message_
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_CELLINFORMATION_ITEM_STRUCT                      CellInformation_Item;
 }LIBLTE_X2AP_MESSAGE_CELLINFORMATION_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_cellinformation_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_cellinformation_item(
   LIBLTE_X2AP_MESSAGE_CELLINFORMATION_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_cellinformation_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_cellinformation_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_CELLINFORMATION_ITEM_STRUCT                 *ie);
 
@@ -6291,15 +6310,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_celltoreport_item_ext(
 /*******************************************************************************
 /* Protocol Message CellToReport_Item STRUCT
 ********************************************************************************/
+//func name changed by Luca
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_CELLTOREPORT_ITEM_STRUCT                         CellToReport_Item;
 }LIBLTE_X2AP_MESSAGE_CELLTOREPORT_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_celltoreport_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_celltoreport_item(
   LIBLTE_X2AP_MESSAGE_CELLTOREPORT_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_celltoreport_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_celltoreport_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_CELLTOREPORT_ITEM_STRUCT                 *ie);
 
@@ -6349,7 +6369,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_reportingperiodicity(
   LIBLTE_X2AP_REPORTINGPERIODICITY_ENUM_EXT                                *ie);
 
 /*******************************************************************************
-/* ProtocolIE ReartialSuccessIndicator ENUMERATED
+/* ProtocolIE PartialSuccessIndicator ENUMERATED
 ********************************************************************************/
 typedef enum{
   LIBLTE_X2AP_PARTIALSUCCESSINDICATOR_PARTIAL_SUCCESS_ALLOWED,
@@ -6438,15 +6458,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_measurementfailurecause_item_ext(
 /*******************************************************************************
 /* Protocol Message MeasurementFailureCause_Item STRUCT
 ********************************************************************************/
+//Luca: change func name add message
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_MEASUREMENTFAILURECAUSE_ITEM_STRUCT              MeasurementFailureCause_Item;
 }LIBLTE_X2AP_MESSAGE_MEASUREMENTFAILURECAUSE_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_measurementfailurecause_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_measurementfailurecause_item(
   LIBLTE_X2AP_MESSAGE_MEASUREMENTFAILURECAUSE_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_measurementfailurecause_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_measurementfailurecause_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_MEASUREMENTFAILURECAUSE_ITEM_STRUCT                 *ie);
 
@@ -6502,15 +6523,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_measurementinitiationresult_item_ext(
 /*******************************************************************************
 /* Protocol Message MeasurementInitiationResult_Item STRUCT
 ********************************************************************************/
+//Luca: change func name add message
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_MEASUREMENTINITIATIONRESULT_ITEM_STRUCT          MeasurementInitiationResult_Item;
 }LIBLTE_X2AP_MESSAGE_MEASUREMENTINITIATIONRESULT_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_measurementinitiationresult_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_measurementinitiationresult_item(
   LIBLTE_X2AP_MESSAGE_MEASUREMENTINITIATIONRESULT_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_measurementinitiationresult_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_measurementinitiationresult_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_MEASUREMENTINITIATIONRESULT_ITEM_STRUCT                 *ie);
 
@@ -6592,15 +6614,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_completefailurecauseinformation_item_ext(
 /*******************************************************************************
 /* Protocol Message CompleteFailureCauseInformation_Item STRUCT
 ********************************************************************************/
+//Luca: change func name
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_COMPLETEFAILURECAUSEINFORMATION_ITEM_STRUCT      CompleteFailureCauseInformation_Item;
 }LIBLTE_X2AP_MESSAGE_COMPLETEFAILURECAUSEINFORMATION_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_completefailurecauseinformation_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_completefailurecauseinformation_item(
   LIBLTE_X2AP_MESSAGE_COMPLETEFAILURECAUSEINFORMATION_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_completefailurecauseinformation_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_completefailurecauseinformation_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_COMPLETEFAILURECAUSEINFORMATION_ITEM_STRUCT                 *ie);
 
@@ -6692,15 +6715,16 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_cellmeasurementresult_item_ext(
 /*******************************************************************************
 /* Protocol Message CellMeasurementResult_Item STRUCT
 ********************************************************************************/
+//Luca: change func name
 typedef struct{
   bool                                                         ext;
   LIBLTE_X2AP_CELLMEASUREMENTRESULT_ITEM_STRUCT                CellMeasurementResult_Item;
 }LIBLTE_X2AP_MESSAGE_CELLMEASUREMENTRESULT_ITEM_STRUCT;
 
-LIBLTE_ERROR_ENUM liblte_x2ap_pack_cellmeasurementresult_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_pack_message_cellmeasurementresult_item(
   LIBLTE_X2AP_MESSAGE_CELLMEASUREMENTRESULT_ITEM_STRUCT                 *ie,
   uint8_t                                                     **ptr);
-LIBLTE_ERROR_ENUM liblte_x2ap_unpack_cellmeasurementresult_item(
+LIBLTE_ERROR_ENUM liblte_x2ap_unpack_message_cellmeasurementresult_item(
   uint8_t                                                     **ptr,
   LIBLTE_X2AP_MESSAGE_CELLMEASUREMENTRESULT_ITEM_STRUCT                 *ie);
 
