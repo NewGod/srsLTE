@@ -491,7 +491,7 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 65536);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_SUCCESSFULOUTCOME;
 
@@ -533,7 +533,7 @@ bool x2ap::send_handoverrequest()
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 65536);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
@@ -576,7 +576,7 @@ bool x2ap::send_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_S
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 65536);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_SUCCESSFULOUTCOME;
 
@@ -618,7 +618,7 @@ bool x2ap::send_snstatustransfer(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 65536);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
@@ -657,7 +657,7 @@ bool x2ap::send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *ms
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 65536);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
