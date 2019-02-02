@@ -8276,11 +8276,12 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_eutra_mode_info(
   if (ie != NULL &&
       ptr != NULL)
   {
+    liblte_value_2_bits(ie->ext?1:0, ptr, 1);
     if(ie->ext) {
       liblte_x2ap_log_print("EUTRA_Mode_Info CHOICE error: X2AP ASN extensions not currently supported\n");
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
-
+    
     // Choice type
     liblte_value_2_bits(ie->choice_type, ptr, 1);
     // Choice
@@ -10691,6 +10692,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_subframeallocation(
   if (ie != NULL &&
       ptr != NULL)
   {
+    liblte_value_2_bits(ie->ext?1:0, ptr, 1);
     if(ie->ext) {
       liblte_x2ap_log_print("SubframeAllocation CHOICE error: X2AP ASN extensions not currently supported\n");
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -10900,6 +10902,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_mobilityparametersmodificationrange_info(
   if (ie != NULL &&
       ptr != NULL)
   {
+    liblte_value_2_bits(ie->ext?1:0, ptr, 1);
     if(ie->ext) {
       liblte_x2ap_log_print("MobilityParametersModificationRange SEQUENCE error: X2AP ASN extensions not currently supported\n");
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -10948,6 +10951,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_mobilityparametersinformation_info(
   if (ie != NULL &&
       ptr != NULL)
   {
+    liblte_value_2_bits(ie->ext?1:0, ptr, 1);
     if(ie->ext) {
       liblte_x2ap_log_print("MobilityParametersInformation SEQUENCE error: X2AP ASN extensions not currently supported\n");
       return LIBLTE_ERROR_ENCODE_FAIL;
