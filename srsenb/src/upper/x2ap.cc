@@ -107,7 +107,7 @@ void x2ap::run_thread()
             }
         }
 
-        x2ap_log->info_hex(pdu->msg, pdu->N_bytes, "Received X2AP PDU");
+        x2ap_log->info_hex(pdu->msg, pdu->N_bytes, "Received X2AP PDU\n");
         handle_x2ap_rx_pdu(pdu);
     }
 }
@@ -232,8 +232,9 @@ bool x2ap::setup_x2ap()
     srslte::byte_buffer_t msg;
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
     //printf("%d\n", sizeof(pdu));
-    //bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
-    
+    //bzero(&pdu, 4096);
+    if(args.active_status == 1)
+    {
 
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
@@ -292,10 +293,9 @@ bool x2ap::setup_x2ap()
     //printf("1send setup\n");
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     //printf("setup packed\n");
-    x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending x2SetupRequest");
-    x2ap_log->console("Sending x2SetupRequest");
-    if(args.active_status == 1)
-    {
+    x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending x2SetupRequest\n");
+    x2ap_log->console("Sending x2SetupRequest\n");
+    
       ssize_t n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
