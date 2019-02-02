@@ -98,7 +98,7 @@ void s1ap::run_thread()
     s1ap_log->error("Fatal Error: Couldn't allocate buffer in s1ap::run_thread().\n");
     return;
   }
-
+  printf("S1 pdu size: %d\n", sizeof(LIBLTE_S1AP_S1AP_PDU_STRUCT));
   uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
   running = true;
 

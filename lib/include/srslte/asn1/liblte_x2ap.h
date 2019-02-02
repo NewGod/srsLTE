@@ -4995,7 +4995,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell(
 // lb:1, ub:256
 typedef struct{
   uint32_t                                                     len;
-  LIBLTE_X2AP_SERVEDCELL_STRUCT                          buffer[256]; //WARNING: Artificial limit to reduce memory footprint
+  LIBLTE_X2AP_SERVEDCELL_STRUCT                          buffer[32]; //WARNING: Artificial limit to reduce memory footprint
 }LIBLTE_X2AP_SERVEDCELLS_STRUCT;
 
 LIBLTE_ERROR_ENUM liblte_x2ap_pack_servedcells(

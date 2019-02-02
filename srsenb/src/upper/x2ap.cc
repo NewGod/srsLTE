@@ -63,6 +63,7 @@ void x2ap::run_thread()
     args.active_status -= 48;
 	//printf("%s\n", args.gtp_bind_addr.c_str());
     //printf("%d\n", args.active_status);
+    printf("X2 pdu size: %d\n", sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
     uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
     running = true;
 
