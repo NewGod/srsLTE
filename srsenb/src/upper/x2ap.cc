@@ -129,7 +129,7 @@ bool x2ap::connect_neighbour()
         struct sockaddr_in local_addr;
         memset(&local_addr, 0, sizeof(local_addr));
         local_addr.sin_family = ADDR_FAMILY;
-        local_addr.sin_port = 0; // Any local port will do
+        local_addr.sin_port = ntohs(X2AP_PORT); // Any local port will do
 
         if(inet_pton(AF_INET, args.gtp_bind_addr.c_str(), &(local_addr.sin_addr)) != 1)
         {
@@ -233,7 +233,7 @@ bool x2ap::setup_x2ap()
     srslte::byte_buffer_t msg;
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
     //printf("%d\n", sizeof(pdu));
-    bzero(&pdu, sizeof(LIBLTE_X2AP_X2AP_PDU_STRUCT));
+    bzero(&pdu, 4096);
     if(args.active_status == 1)
     {
 
@@ -491,7 +491,7 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, 65536);
+    bzero(&pdu, 4096);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_SUCCESSFULOUTCOME;
 
@@ -533,7 +533,7 @@ bool x2ap::send_handoverrequest()
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, 65536);
+    bzero(&pdu, 4096);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
@@ -576,7 +576,7 @@ bool x2ap::send_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_S
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, 65536);
+    bzero(&pdu, 4096);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_SUCCESSFULOUTCOME;
 
@@ -618,7 +618,7 @@ bool x2ap::send_snstatustransfer(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, 65536);
+    bzero(&pdu, 4096);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
@@ -657,7 +657,7 @@ bool x2ap::send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *ms
     srslte::byte_buffer_t msg;
 
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
-    bzero(&pdu, 65536);
+    bzero(&pdu, 4096);
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
 
