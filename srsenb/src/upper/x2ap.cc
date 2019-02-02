@@ -126,7 +126,7 @@ bool x2ap::connect_neighbour()
         struct sockaddr_in local_addr;
         memset(&local_addr, 0, sizeof(local_addr));
         local_addr.sin_family = ADDR_FAMILY;
-        local_addr.sin_port = ntohs(X2AP_PORT); // Any local port will do
+        local_addr.sin_port = 0; // Any local port will do
 
         if(inet_pton(AF_INET, args.gtp_bind_addr.c_str(), &(local_addr.sin_addr)) != 1)
         {
