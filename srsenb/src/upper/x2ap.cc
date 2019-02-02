@@ -8,6 +8,7 @@
 
 namespace srsenb
 {
+bool bound = false;
 
 bool x2ap::init(x2ap_args_t args_, rrc_interface_x2ap *rrc_, s1ap_interface_x2ap *s1ap_, srslte::log *x2ap_log_)
 {
@@ -83,7 +84,7 @@ void x2ap::run_thread()
     while(running)
     {
         pdu->reset();
-        pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
+        pdu->N_bytes = recv(conn_fd, pdu->msg, sz, 0);
 
         if((int)pdu->N_bytes <= 0)
         {
@@ -116,7 +117,7 @@ bool x2ap::connect_neighbour()
     {
         x2ap_log->info("Connecting to neighbour ENB actively: %s:%d\n", args.neighbour_addr.c_str(), X2AP_PORT);
         x2ap_log->console("Connecting to neighbour ENB actively: %s:%d\n", args.neighbour_addr.c_str(), X2AP_PORT);
-        if((socket_fd = socket(ADDR_FAMILY, SOCK_TYPE, PROTO)) == -1)
+        if((conn_fd = socket(ADDR_FAMILY, SOCK_TYPE, PROTO)) == -1)
         {
             x2ap_log->error("Failed to create X2AP socket\n");
             x2ap_log->console("Failed to create X2AP socket\n");
@@ -134,13 +135,18 @@ bool x2ap::connect_neighbour()
             x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.gtp_bind_addr.c_str());
             return false;
         }
-        int ret = bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
+        if(!bound)
+        {
+        int ret = bind(conn_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
         if(ret < 0)
         {
-        	x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
+            x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
             x2ap_log->console("Error Binding\n", args.gtp_bind_addr.c_str());
             return false;
         }
+        bound = true;
+        }
+        
 
         memset(&neighbour_enb_addr, 0, sizeof(struct sockaddr_in));
         neighbour_enb_addr.sin_family = ADDR_FAMILY;
@@ -151,7 +157,7 @@ bool x2ap::connect_neighbour()
             x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
             return false;
         }
-        if(connect(socket_fd, (struct sockaddr*)&neighbour_enb_addr, sizeof(neighbour_enb_addr)) == -1)
+        if(connect(conn_fd, (struct sockaddr*)&neighbour_enb_addr, sizeof(neighbour_enb_addr)) == -1)
         {
             x2ap_log->error("Failed to establish connection to neighbour ENB\n");
             x2ap_log->console("Failed to establish connection to neighbour ENB\n");
@@ -182,12 +188,16 @@ bool x2ap::connect_neighbour()
             x2ap_log->console("Error converting IP address (%s) to sockaddr_in structure\n", args.neighbour_addr.c_str());
             return false;
         }
+        if(!bound)
+        {
         int ret = bind(socket_fd, (struct sockaddr*)&local_addr, sizeof(local_addr));
         if(ret < 0)
         {
-        	x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
+            x2ap_log->error("Error Binding\n", args.gtp_bind_addr.c_str());
             x2ap_log->console("Error Binding\n", args.gtp_bind_addr.c_str());
             return false;
+        }
+        bound = true;
         }
 
         if(listen(socket_fd,SOMAXCONN) != 0)
@@ -207,8 +217,8 @@ bool x2ap::connect_neighbour()
             close(socket_fd);
             return false;
         }
-        socklen_t len = sizeof(neighbour_enb_addr);
-        getpeername(socket_fd, (struct sockaddr *)&neighbour_enb_addr, &len);
+        //socklen_t len = sizeof(neighbour_enb_addr);
+        //getpeername(socket_fd, (struct sockaddr *)&neighbour_enb_addr, &len);
         
         x2ap_log->info("SCTP socket established with neighbour ENB\n");
         x2ap_log->console("SCTP socket established with neighbour ENB\n");
@@ -294,8 +304,8 @@ bool x2ap::setup_x2ap()
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending x2SetupRequest\n");
     x2ap_log->console("Sending x2SetupRequest\n");
     
-      ssize_t n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+      ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) 
     {
@@ -506,8 +516,8 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     x2ap_log->console("Sending X2 setup response\n");
 
     ssize_t n_sent;
-    n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
     x2ap_log->error("Failed to send X2SetupResponse\n");
@@ -545,13 +555,8 @@ bool x2ap::send_handoverrequest()
     x2ap_log->console("Sending X2 handover request\n");
 
     ssize_t n_sent;
-    if(args.active_status == 1)
-    n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
-                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
-    else if(args.active_status == 0)
-    n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
     x2ap_log->error("Failed to send X2handoverRequest\n");
@@ -587,13 +592,8 @@ bool x2ap::send_handoverrequestacknowledge(LIBLTE_X2AP_MESSAGE_HANDOVERREQUEST_S
     x2ap_log->console("Sending X2 handover ack\n");
 
     ssize_t n_sent;
-    if(args.active_status == 1)
-    n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
-                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
-    else if(args.active_status == 0)
-    n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
     x2ap_log->error("Failed to send X2handoverRequestAck\n");
@@ -626,13 +626,8 @@ bool x2ap::send_snstatustransfer(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending SNStatusTransfer\n");
     x2ap_log->console("Sending SNStatusTransfer\n");
     ssize_t n_sent;
-    if(args.active_status == 1)
-    n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
-                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
-    else if(args.active_status == 0)
-    n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
     x2ap_log->error("Failed to send SNStatusTransfer\n");
@@ -665,13 +660,8 @@ bool x2ap::send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *ms
     x2ap_log->console("Sending UEContextRelease\n");
 
     ssize_t n_sent;
-    if(args.active_status == 1)
-    n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
-                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
-    else if(args.active_status == 0)
-    n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
     x2ap_log->error("Failed to send UEContextRelease\n");
