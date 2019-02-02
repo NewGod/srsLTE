@@ -83,10 +83,7 @@ void x2ap::run_thread()
     while(running)
     {
         pdu->reset();
-        if(args.active_status == 1)
         pdu->N_bytes = recv(socket_fd, pdu->msg, sz, 0);
-        else if(args.active_status == 0)
-        pdu->N_bytes = recv(conn_fd, pdu->msg, sz, 0);
 
         if((int)pdu->N_bytes <= 0)
         {
@@ -211,7 +208,7 @@ bool x2ap::connect_neighbour()
             return false;
         }
         socklen_t len = sizeof(neighbour_enb_addr);
-        getpeername(conn_fd, (struct sockaddr *)&neighbour_enb_addr, &len);
+        getpeername(socket_fd, (struct sockaddr *)&neighbour_enb_addr, &len);
         
         x2ap_log->info("SCTP socket established with neighbour ENB\n");
         x2ap_log->console("SCTP socket established with neighbour ENB\n");
@@ -509,12 +506,7 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     x2ap_log->console("Sending X2 setup response\n");
 
     ssize_t n_sent;
-    if(args.active_status == 1)
     n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
-                                (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
-                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
-    else if(args.active_status == 0)
-    n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
                                 (struct sockaddr*)&neighbour_enb_addr, sizeof(struct sockaddr_in),
                                 htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
     if(n_sent == -1) {
