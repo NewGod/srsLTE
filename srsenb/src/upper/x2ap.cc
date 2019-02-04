@@ -605,6 +605,7 @@ bool x2ap::send_handoverrequest()
     req->SRVCCOperationPossible_present = false;
     req->CSGMembershipStatus_present = false;
     req->MobilityInformation_present = false;
+    req->UE_ContextInformation.E_RABS_ToBeSetup_List.len = 1;
     req->UE_HistoryInformation.len = 1;
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 handover request\n");
