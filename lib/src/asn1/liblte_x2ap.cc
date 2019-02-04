@@ -5807,8 +5807,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_absinformationfdd(
 
     for (uint32_t i = 0; i < 40; ++i)
       liblte_value_2_bits(ie->measurement_subset[i], ptr, 1);
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
 
@@ -5914,8 +5914,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_absinformationtdd(
 
     for (uint32_t i = 0; i < 70; ++i)
       liblte_value_2_bits(ie->measurement_subset[i], ptr, 1);
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
 
@@ -6090,8 +6090,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_usableabsinformationfdd(
 
     for (uint32_t i = 0; i < 40; ++i)
       liblte_value_2_bits(ie->usable_abs_pattern_info[i], ptr, 1);
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
 
@@ -6190,8 +6190,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_usableabsinformationtdd(
 
     for (uint32_t i = 0; i < 70; ++i)
       liblte_value_2_bits(ie->usable_abs_pattern_info[i], ptr, 1);
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
 
@@ -6363,8 +6363,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_abs_status(
     if (liblte_x2ap_pack_usableabsinformation(&ie->usableABSInformation, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
 
@@ -6469,8 +6469,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_additionalspecialsubframe_info(
 
     if (liblte_x2ap_pack_cyclicprefixul(&ie->cyclicPrefixUL, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
 
     //liblte_align_up_zero(ptr, 8);
@@ -6577,8 +6577,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_as_securityinformation(
     
     if (liblte_x2ap_pack_nexthopchainingcount(&ie->nextHopChainingCount, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
+    if (ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
 
     //liblte_align_up_zero(ptr, 8);
@@ -6683,8 +6683,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_allocationandretentionpriority(
 
     if (liblte_x2ap_pack_pre_emptionvulnerability(&ie->pre_emptionVulnerability, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
 
     //liblte_align_up_zero(ptr, 8);
