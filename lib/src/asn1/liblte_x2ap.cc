@@ -13318,15 +13318,19 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_tobesetup_item(
     ie->iE_Extensions_present = liblte_bits_2_value(ptr, 1);
 
     if(liblte_x2ap_unpack_e_rab_id(ptr, &ie->e_RAB_ID) != LIBLTE_SUCCESS) {
+      printf("fail to unpak e_rab_id\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(liblte_x2ap_unpack_e_rab_level_qos_parameters(ptr, &ie->e_RAB_Level_Qos_Parameters) != LIBLTE_SUCCESS) {
+      printf("fail to unpack qos_parameters\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(liblte_x2ap_unpack_dl_forwarding(ptr, &ie->dL_Forwarding) != LIBLTE_SUCCESS) {
+      printf("fail to unpack dl_forwarding\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(liblte_x2ap_unpack_gtptunnelendpoint(ptr, &ie->uL_GTPtunnelEndpoint) != LIBLTE_SUCCESS) {
+      printf("fail to unpack gtptunnel\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(ie->iE_Extensions_present) {
