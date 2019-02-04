@@ -513,12 +513,15 @@ bool x2ap::handle_x2setupfailure(LIBLTE_X2AP_MESSAGE_X2SETUPFAILURE_STRUCT *msg)
 bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
 {
     srslte::byte_buffer_t msg;
-
+    uint32_t tmp32;
+    uint16_t tmp16;
+    uint32_t plmn;
+    srslte::x2ap_mccmnc_to_plmn(args.mcc, args.mnc, &plmn);
     LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
     bzero(&pdu, sizeof(pdu));
     pdu.ext = false;
     pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_SUCCESSFULOUTCOME;
-
+    uint8_t  enb_id_bits[4*8];
     LIBLTE_X2AP_SUCCESSFULOUTCOME_STRUCT *successful = &pdu.choice.successfulOutcome;
     successful->procedureCode = LIBLTE_X2AP_PROC_ID_X2SETUP;
     successful->choice_type = LIBLTE_X2AP_SUCCESSFULOUTCOME_CHOICE_X2SETUPRESPONSE;
@@ -528,6 +531,39 @@ bool x2ap::send_x2setupresponse(LIBLTE_X2AP_MESSAGE_X2SETUPREQUEST_STRUCT *msg1)
     req->ext = false;
     req->GUGroupIDList_present = false;
     req->CriticalityDiagnostics_present = false;
+    req->ServedCells.len = 1;
+    req->ServedCells.buffer[0].ext = false;
+    req->ServedCells.buffer[0].iE_Extensions_present = false;
+    req->ServedCells.buffer[0].neighbour_Info_present = false;
+
+    req->ServedCells.buffer[0].servedCellInfo.ext = false;
+    req->ServedCells.buffer[0].servedCellInfo.iE_Extensions_present = false;
+    tmp32 = htonl(args.pci);
+    req->ServedCells.buffer[0].servedCellInfo.pCI.PCI = tmp32; // to be verifiled 
+    req->ServedCells.buffer[0].servedCellInfo.cellId.ext = false;
+    req->ServedCells.buffer[0].servedCellInfo.cellId.iE_Extensions_present = false;
+    //printf("PCI: %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.pCI.PCI);
+    tmp32 = htonl(plmn);
+    req->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[0] = ((uint8_t*)&tmp32)[1];
+    req->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[1] = ((uint8_t*)&tmp32)[2];
+    req->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[2] = ((uint8_t*)&tmp32)[3];
+    //printf("servedcellinfo pLMN_Identity: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[0],
+        //x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[1],
+        //x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[2]);
+    uint8_t cell_id_bits[1*8];
+    liblte_unpack(&args.cell_id, 1, cell_id_bits);
+    memcpy(req->ServedCells.buffer[0].servedCellInfo.cellId.eUTRANcellIdentifier.buffer, &enb_id_bits[32-LIBLTE_X2AP_MACROENB_ID_BIT_STRING_LEN], LIBLTE_X2AP_MACROENB_ID_BIT_STRING_LEN);
+    memcpy(&req->ServedCells.buffer[0].servedCellInfo.cellId.eUTRANcellIdentifier.buffer[LIBLTE_X2AP_MACROENB_ID_BIT_STRING_LEN], cell_id_bits, 8); 
+    tmp16 = htons(args.tac);
+    memcpy(req->ServedCells.buffer[0].servedCellInfo.tAC.buffer, (uint8_t*)&tmp16, 2);
+    req->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.len = 1;
+    tmp32 = htonl(plmn);
+    req->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[0] = ((uint8_t*)&tmp32)[1];
+    req->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[1] = ((uint8_t*)&tmp32)[2];
+    req->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[2] = ((uint8_t*)&tmp32)[3];
+    //printf("servedcellinfo broadcastPLMN: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[0], 
+        //x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[1],
+        //x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[2]);
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 setup response\n");
     x2ap_log->console("Sending X2 setup response\n");
