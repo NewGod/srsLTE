@@ -13686,6 +13686,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_ue_contextinformation(
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(liblte_x2ap_unpack_ueaggregatemaximumbitrate(ptr, &ie->uEaggregateMaximumBitRate) != LIBLTE_SUCCESS) {
+      printf("fail to unpack uectxtinfo->ueaggreagte\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(ie->subscribeProfileIDforRFP_present) {
@@ -13694,9 +13695,11 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_ue_contextinformation(
     }
    }
     if(liblte_x2ap_unpack_e_rabs_tobesetup_list(ptr, &ie->E_RABS_ToBeSetup_List) != LIBLTE_SUCCESS) {
+      printf("fail to unpack erabstobesetuplist\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(liblte_x2ap_unpack_rrc_context(ptr, &ie->rRC_Context) != LIBLTE_SUCCESS) {
+      printf("fail to unpack uectxtinfo->rrccontext\n");
       return LIBLTE_ERROR_DECODE_FAIL;
     }
     if(ie->handoverRestrictionList_present) {
