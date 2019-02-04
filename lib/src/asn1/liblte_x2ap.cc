@@ -2848,7 +2848,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_transportlayeraddress(
     }
 
     // Length
-    liblte_value_2_bits(ie->n_bits-1, ptr, 8);
+    liblte_value_2_bits(ie->n_bits, ptr, 8);
     liblte_align_up_zero(ptr, 8);
     
     // Bits
@@ -2881,7 +2881,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_transportlayeraddress(
     }
 
     // Length
-    ie->n_bits = liblte_bits_2_value(ptr, 8) + 1;
+    ie->n_bits = liblte_bits_2_value(ptr, 8);
     liblte_align_up(ptr, 8);
 
     // Bits
