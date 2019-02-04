@@ -13570,6 +13570,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_tobesetup_list(
 
     // Length
     ie->len = liblte_bits_2_value(ptr, 8) + 1;
+    printf("tobesetup list length: %d\n", ie->len);
     liblte_align_up(ptr, 8);
     if(ie->len > 32) {
       liblte_x2ap_log_print("E_RABs_ToBeSetup_List unpack error - max supported dynamic sequence length = 32, ie->len = %d\n", ie->len);
@@ -13579,9 +13580,11 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_tobesetup_list(
     uint32_t i;
     for(i=0;i<ie->len;i++) {
       if(liblte_x2ap_unpack_protocolie_header(ptr, &ie_id, &crit, &len) != LIBLTE_SUCCESS) {
+        printf("fail to unpack header\n");
         return LIBLTE_ERROR_DECODE_FAIL;
       }
       if(LIBLTE_X2AP_IE_ID_E_RABS_TOBESETUP_ITEM != ie_id) {
+        printf("ID error\n");
         return LIBLTE_ERROR_DECODE_FAIL;
       }
       if(liblte_x2ap_unpack_e_rabs_tobesetup_item(ptr, &ie->buffer[i]) != LIBLTE_SUCCESS) {
