@@ -6921,8 +6921,8 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_ecgi(
     
     if (liblte_x2ap_pack_eutrancellidentifier(&ie->eUTRANcellIdentifier, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
-
-    if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
+    if(ie->iE_Extensions_present)
+     if(liblte_x2ap_pack_protocolextensioncontainer(&ie->iE_Extensions, ptr) != LIBLTE_SUCCESS)
       return LIBLTE_ERROR_ENCODE_FAIL;
 
     //liblte_align_up_zero(ptr, 8);
