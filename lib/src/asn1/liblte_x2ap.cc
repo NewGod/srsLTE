@@ -11744,6 +11744,9 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell_information(
     if(liblte_x2ap_unpack_ecgi(ptr, &ie->cellId) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
+    printf("servedcellinfo pLMN_Identity: %d %d %d\n", ie->cellId.pLMN_Identity.buffer[0],
+     ie->cellId.pLMN_Identity.buffer[1],
+      ie->cellId.pLMN_Identity.buffer[2]);
     
     if(liblte_x2ap_unpack_tac(ptr, &ie->tAC) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -11752,6 +11755,9 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_servedcell_information(
     if(liblte_x2ap_unpack_broadcastplmns_item(ptr, &ie->broadcastPLMNS) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
+    printf("servedcellinfo broadcastPLMN: %d %d %d\n", ie->broadcastPLMNS.buffer[0].buffer[0], 
+        ie->broadcastPLMNS.buffer[0].buffer[1],
+        ie->broadcastPLMNS.buffer[0].buffer[2]);
     
     if(liblte_x2ap_unpack_eutra_mode_info(ptr, &ie->eUTRA_Mode_Info) != LIBLTE_SUCCESS) {
       return LIBLTE_ERROR_ENCODE_FAIL;
@@ -21541,6 +21547,9 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_x2setuprequest(
           return LIBLTE_ERROR_DECODE_FAIL;
         }
         liblte_align_up(ptr, 8);
+        printf("GlobalENB_ID.pLMN_Identity : %d %d %d\n", msg->GlobalENB_ID.pLMN_Identity.buffer[0], 
+        msg->GlobalENB_ID.pLMN_Identity.buffer[1], 
+        msg->GlobalENB_ID.pLMN_Identity.buffer[2]);
       } else      if(LIBLTE_X2AP_IE_ID_SERVEDCELLS == ie_id) {
         if(liblte_x2ap_unpack_servedcells(ptr, &msg->ServedCells) != LIBLTE_SUCCESS) {
           return LIBLTE_ERROR_DECODE_FAIL;
