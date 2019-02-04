@@ -336,6 +336,7 @@ bool x2ap::handle_x2ap_rx_pdu(srslte::byte_buffer_t *pdu)
     if(liblte_x2ap_unpack_x2ap_pdu((LIBLTE_BYTE_MSG_STRUCT*)pdu, &rx_pdu) != LIBLTE_SUCCESS)
     {
         x2ap_log->error("Failed to unpack received PDU\n");
+        x2ap_log->console("Failed to unpack received PDU\n");
         return false;
     }
 
@@ -352,6 +353,7 @@ bool x2ap::handle_x2ap_rx_pdu(srslte::byte_buffer_t *pdu)
             break;
         default:
             x2ap_log->error("Unhandled PDU type %d\n", rx_pdu.choice_type);
+            x2ap_log->console("Unhandled PDU type %d\n", rx_pdu.choice_type);
             return false;
     }
     return true;
@@ -603,6 +605,7 @@ bool x2ap::send_handoverrequest()
     req->SRVCCOperationPossible_present = false;
     req->CSGMembershipStatus_present = false;
     req->MobilityInformation_present = false;
+    req->UE_HistoryInformation.len = 1;
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
     x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending X2 handover request\n");
     x2ap_log->console("Sending X2 handover request\n");

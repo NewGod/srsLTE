@@ -21217,6 +21217,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_handoverrequest(
                                           LIBLTE_X2AP_IE_ID_UE_CONTEXTINFORMATION,
                                           LIBLTE_X2AP_CRITICALITY_REJECT,
                                           ptr) != LIBLTE_SUCCESS) {
+
       return LIBLTE_ERROR_ENCODE_FAIL;
     }
     memcpy(*ptr, tmp_msg.msg, tmp_msg.N_bits);
@@ -21379,11 +21380,13 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_handoverrequest(
         liblte_align_up(ptr, 8);
       } else      if(LIBLTE_X2AP_IE_ID_UE_CONTEXTINFORMATION == ie_id) {
         if(liblte_x2ap_unpack_ue_contextinformation(ptr, &msg->UE_ContextInformation) != LIBLTE_SUCCESS) {
+          printf("fail to unpack HandoverRequest->UE_ContextInformation\n");
           return LIBLTE_ERROR_DECODE_FAIL;
         }
         liblte_align_up(ptr, 8);
       } else      if(LIBLTE_X2AP_IE_ID_UE_HISTORYINFORMATION == ie_id) {
         if(liblte_x2ap_unpack_ue_historyinformation(ptr, &msg->UE_HistoryInformation) != LIBLTE_SUCCESS) {
+          printf("fail to unpack HandoverRequest->UE_HistoryInformation\n");
           return LIBLTE_ERROR_DECODE_FAIL;
         }
         liblte_align_up(ptr, 8);
