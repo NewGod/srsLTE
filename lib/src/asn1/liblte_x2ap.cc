@@ -932,7 +932,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_bitrate(
     {
       uint32_t n_bits   = floor(log2(ie->BitRate-0)+1);
       uint32_t n_octets = (n_bits+7)/8;
-      liblte_value_2_bits(n_octets-1, ptr, 3);
+      liblte_value_2_bits(n_octets, ptr, 4);
       liblte_align_up_zero(ptr, 8);
       liblte_value_2_bits(0, ptr, (n_octets*8)-n_bits);
       liblte_value_2_bits(ie->BitRate-0, ptr, n_bits);
@@ -953,7 +953,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_pack_bitrate(
     // lb:0, ub:10000000000
     // Range > 65536 - encoded based on value
     {
-      uint32_t n_octets = liblte_bits_2_value(ptr, 3) + 1;
+      uint32_t n_octets = liblte_bits_2_value(ptr, 4);
       liblte_align_up(ptr, 8);
       ie->BitRate = liblte_bits_2_value(ptr, n_octets*8) + 0;
     }
