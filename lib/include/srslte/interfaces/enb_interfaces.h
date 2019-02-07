@@ -33,6 +33,7 @@
 #include "srslte/upper/rlc_interface.h"
 #include "srslte/asn1/liblte_rrc.h"
 #include "srslte/asn1/liblte_s1ap.h"
+#include "srslte/asn1/liblte_x2ap.h"
 
 #include <vector>
 
@@ -304,6 +305,7 @@ public:
 class x2ap_interface_s1ap
 {
 public:
+  virtual bool send_uecontextrelease(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg1) = 0;
 
 };
 }

@@ -117,7 +117,7 @@ private:
 	bool send_snstatustransfer(LIBLTE_X2AP_MESSAGE_HANDOVERREQUESTACKNOWLEDGE_STRUCT *msg1);
 	bool send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *msg1);
 	bool release_ue_cxt(LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *msg1);
-
+  bool send_uecontextrelease(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg1);
 	std::string get_cause(LIBLTE_X2AP_CAUSE_STRUCT *c);
 };
 

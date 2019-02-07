@@ -727,6 +727,40 @@ bool x2ap::send_uecontextrelease(LIBLTE_X2AP_MESSAGE_SNSTATUSTRANSFER_STRUCT *ms
     return true;
 }
 
+bool x2ap::send_uecontextrelease(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg1)
+{
+    if(!neighbour_connected)
+        return false;
+
+    srslte::byte_buffer_t msg;
+
+    LIBLTE_X2AP_X2AP_PDU_STRUCT pdu;
+    bzero(&pdu, sizeof(pdu));
+    pdu.ext = false;
+    pdu.choice_type = LIBLTE_X2AP_X2AP_PDU_CHOICE_INITIATINGMESSAGE;
+
+    LIBLTE_X2AP_INITIATINGMESSAGE_STRUCT *init = &pdu.choice.initiatingMessage;
+    init->procedureCode = LIBLTE_X2AP_PROC_ID_UECONTEXTRELEASE;
+    init->choice_type = LIBLTE_X2AP_INITIATINGMESSAGE_CHOICE_UECONTEXTRELEASE;
+
+    LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *req = &(init->choice.UEContextRelease);
+    //TODO: fill the mandatories
+    req->ext = false;
+    liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
+    x2ap_log->info_hex(msg.msg, msg.N_bytes, "Sending UEContextRelease\n");
+    x2ap_log->console("Sending UEContextRelease\n");
+
+    
+    ssize_t n_sent = sctp_sendmsg(conn_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)NULL, sizeof(struct sockaddr_in),
+                                htonl(PPID), 0, NONUE_STREAM_ID, 0, 0);
+    if(n_sent == -1) {
+    x2ap_log->error("Failed to send UEContextRelease\n");
+    return false;
+  }
+    return true;
+}
+
 bool x2ap::release_ue_cxt(LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *msg1)
 {
     //TODO: change some data
