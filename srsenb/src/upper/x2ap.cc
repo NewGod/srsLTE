@@ -262,9 +262,9 @@ bool x2ap::setup_x2ap()
     x2setup->GlobalENB_ID.pLMN_Identity.buffer[0] = ((uint8_t*)&tmp32)[1];
     x2setup->GlobalENB_ID.pLMN_Identity.buffer[1] = ((uint8_t*)&tmp32)[2];
     x2setup->GlobalENB_ID.pLMN_Identity.buffer[2] = ((uint8_t*)&tmp32)[3];
-    printf("GlobalENB_ID.pLMN_Identity : %d %d %d\n", x2setup->GlobalENB_ID.pLMN_Identity.buffer[0], 
-        x2setup->GlobalENB_ID.pLMN_Identity.buffer[1], 
-        x2setup->GlobalENB_ID.pLMN_Identity.buffer[2]);
+    //printf("GlobalENB_ID.pLMN_Identity : %d %d %d\n", x2setup->GlobalENB_ID.pLMN_Identity.buffer[0], 
+       // x2setup->GlobalENB_ID.pLMN_Identity.buffer[1], 
+        //x2setup->GlobalENB_ID.pLMN_Identity.buffer[2]);
 
     x2setup->GlobalENB_ID.eNB_ID.ext = false;
     x2setup->GlobalENB_ID.eNB_ID.choice_type = LIBLTE_X2AP_ENB_ID_CHOICE_MACROENB_ID;
@@ -286,14 +286,14 @@ bool x2ap::setup_x2ap()
     x2setup->ServedCells.buffer[0].servedCellInfo.pCI.PCI = tmp32; // to be verifiled 
     x2setup->ServedCells.buffer[0].servedCellInfo.cellId.ext = false;
     x2setup->ServedCells.buffer[0].servedCellInfo.cellId.iE_Extensions_present = false;
-    printf("PCI: %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.pCI.PCI);
+    //printf("PCI: %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.pCI.PCI);
     tmp32 = htonl(plmn);
     x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[0] = ((uint8_t*)&tmp32)[1];
     x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[1] = ((uint8_t*)&tmp32)[2];
     x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[2] = ((uint8_t*)&tmp32)[3];
-    printf("servedcellinfo pLMN_Identity: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[0],
-    	x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[1],
-    	x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[2]);
+   // printf("servedcellinfo pLMN_Identity: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[0],
+    	//x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[1],
+    	//x2setup->ServedCells.buffer[0].servedCellInfo.cellId.pLMN_Identity.buffer[2]);
     uint8_t cell_id_bits[1*8];
     liblte_unpack(&args.cell_id, 1, cell_id_bits);
     memcpy(x2setup->ServedCells.buffer[0].servedCellInfo.cellId.eUTRANcellIdentifier.buffer, &enb_id_bits[32-LIBLTE_X2AP_MACROENB_ID_BIT_STRING_LEN], LIBLTE_X2AP_MACROENB_ID_BIT_STRING_LEN);
@@ -305,9 +305,9 @@ bool x2ap::setup_x2ap()
     x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[0] = ((uint8_t*)&tmp32)[1];
     x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[1] = ((uint8_t*)&tmp32)[2];
     x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[2] = ((uint8_t*)&tmp32)[3];
-    printf("servedcellinfo broadcastPLMN: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[0], 
-        x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[1],
-        x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[2]);
+   // printf("servedcellinfo broadcastPLMN: %d %d %d\n", x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[0], 
+        //x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[1],
+        //x2setup->ServedCells.buffer[0].servedCellInfo.broadcastPLMNS.buffer[0].buffer[2]);
     //TODO: x2setup->ServedCells.buffer[0].servedCellInfo.eUTRA_Mode_Info 
     //printf("1send setup\n");
     liblte_x2ap_pack_x2ap_pdu(&pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
@@ -731,6 +731,7 @@ bool x2ap::release_ue_cxt(LIBLTE_X2AP_MESSAGE_UECONTEXTRELEASE_STRUCT *msg1)
 {
     //TODO: change some data
     x2ap_log->info("successful X2 handover\n");
+    x2ap_log->console("successful X2 handover\n");
     return true;
 }
 
