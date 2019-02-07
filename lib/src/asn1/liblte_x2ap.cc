@@ -13584,7 +13584,7 @@ LIBLTE_ERROR_ENUM liblte_x2ap_unpack_e_rabs_tobesetup_list(
         return LIBLTE_ERROR_DECODE_FAIL;
       }
       if(LIBLTE_X2AP_IE_ID_E_RABS_TOBESETUP_ITEM != ie_id) {
-        printf("ID error\n");
+        printf("ID error: %d %d\n", LIBLTE_X2AP_IE_ID_E_RABS_TOBESETUP_ITEM, ie_id);
         return LIBLTE_ERROR_DECODE_FAIL;
       }
       if(liblte_x2ap_unpack_e_rabs_tobesetup_item(ptr, &ie->buffer[i]) != LIBLTE_SUCCESS) {
