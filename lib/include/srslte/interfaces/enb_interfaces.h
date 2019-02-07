@@ -33,6 +33,7 @@
 #include "srslte/upper/rlc_interface.h"
 #include "srslte/asn1/liblte_rrc.h"
 #include "srslte/asn1/liblte_s1ap.h"
+#include "srslte/asn1/liblte_x2ap.h"
 
 #include <vector>
 
@@ -234,6 +235,7 @@ public:
   virtual bool is_paging_opportunity(uint32_t tti, uint32_t *payload_len) = 0; 
 };
 
+
 // RRC interface for PDCP
 class rrc_interface_pdcp
 {
@@ -251,6 +253,11 @@ public:
   virtual bool setup_ue_erabs(uint16_t rnti, LIBLTE_S1AP_MESSAGE_E_RABSETUPREQUEST_STRUCT *msg) = 0;
   virtual bool release_erabs(uint32_t rnti) = 0;
   virtual void add_paging_id(uint32_t ueid, LIBLTE_S1AP_UEPAGINGID_STRUCT UEPagingID) = 0; 
+};
+
+class rrc_interface_x2ap
+{
+public:
 };
 
 // GTPU interface for PDCP
@@ -283,6 +290,24 @@ public:
   // virtual void ue_capabilities(uint16_t rnti, LIBLTE_RRC_UE_EUTRA_CAPABILITY_STRUCT *caps) = 0;
 };
 
+class s1ap_interface_x2ap
+{
+public:
+
+};
+
+class x2ap_interface_rrc
+{
+public:
+  virtual void handover_start(uint16_t rnti) = 0;
+};
+
+class x2ap_interface_s1ap
+{
+public:
+  virtual bool send_uecontextrelease(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg1) = 0;
+
+};
 }
 
 #endif // SRSLTE_ENB_INTERFACES_H

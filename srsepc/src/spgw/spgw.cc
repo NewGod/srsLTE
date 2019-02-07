@@ -352,7 +352,9 @@ spgw::handle_sgi_pdu(srslte::byte_buffer_t *msg)
   }
   struct sockaddr_in enb_addr;
   enb_addr.sin_family = AF_INET;
-  enb_addr.sin_port = htons(GTPU_RX_PORT);
+  //enb_addr.sin_port = htons(GTPU_RX_PORT);
+  enb_addr.sin_port = htons(2160);
+
   enb_addr.sin_addr.s_addr = enb_fteid.ipv4;
   //m_spgw_log->console("UE F-TEID found, TEID 0x%x, eNB IP %s\n", enb_fteid.teid, inet_ntoa(enb_addr.sin_addr));
 

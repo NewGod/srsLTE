@@ -191,6 +191,33 @@ inline void s1ap_mccmnc_to_plmn(uint16_t mcc, uint16_t mnc, uint32_t *plmn)
   *plmn |= nibbles[5];
 }
 
+inline void x2ap_mccmnc_to_plmn(uint16_t mcc, uint16_t mnc, uint32_t *plmn)
+{
+  uint8_t nibbles[6];
+  nibbles[1] = (mcc & 0x0F00) >> 8; // MCC digit 1
+  nibbles[0] = (mcc & 0x00F0) >> 4; // MCC digit 2
+  nibbles[3] = (mcc & 0x000F);      // MCC digit 3
+
+  if((mnc & 0xFF00) == 0xFF00) {
+    // 2-digit MNC
+    nibbles[2] = 0x0F;                // MNC digit 1
+    nibbles[5] = (mnc & 0x00F0) >> 4; // MNC digit 2
+    nibbles[4] = (mnc & 0x000F);      // MNC digit 3
+  } else {
+    // 3-digit MNC
+    nibbles[5] = (mnc & 0x0F00) >> 8; // MNC digit 1
+    nibbles[4] = (mnc & 0x00F0) >> 4; // MNC digit 2
+    nibbles[2] = (mnc & 0x000F);      // MNC digit 3
+  }
+
+  *plmn = 0x000000;
+  *plmn |= nibbles[0] << 20;
+  *plmn |= nibbles[1] << 16;
+  *plmn |= nibbles[2] << 12;
+  *plmn |= nibbles[3] << 8;
+  *plmn |= nibbles[4] << 4;
+  *plmn |= nibbles[5];
+}
 
 } // namespace srslte
 

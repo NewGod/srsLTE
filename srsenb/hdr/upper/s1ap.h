@@ -63,10 +63,11 @@ typedef struct {
 
 class s1ap
     :public s1ap_interface_rrc
+    ,public s1ap_interface_x2ap
     ,public thread
 {
 public:
-  bool init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, srslte::log *s1ap_log_);
+  bool init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, x2ap_interface_s1ap *x2ap_, srslte::log *s1ap_log_);
   void stop();
   void get_metrics(s1ap_metrics_t &m);
 
@@ -92,6 +93,7 @@ private:
   static const int NONUE_STREAM_ID  = 0;
 
   rrc_interface_s1ap    *rrc;
+  x2ap_interface_s1ap   *x2ap;
   s1ap_args_t            args;
   srslte::log           *s1ap_log;
   srslte::byte_buffer_pool   *pool;
@@ -128,6 +130,7 @@ private:
   bool handle_uectxtreleasecommand(LIBLTE_S1AP_MESSAGE_UECONTEXTRELEASECOMMAND_STRUCT *msg);
   bool handle_s1setupfailure(LIBLTE_S1AP_MESSAGE_S1SETUPFAILURE_STRUCT *msg);
   bool handle_erabsetuprequest(LIBLTE_S1AP_MESSAGE_E_RABSETUPREQUEST_STRUCT *msg);
+  bool handle_pathswitchresponse(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg);
 
   bool send_initialuemessage(uint16_t rnti, LIBLTE_S1AP_RRC_ESTABLISHMENT_CAUSE_ENUM cause, srslte::byte_buffer_t *pdu, bool has_tmsi, uint32_t m_tmsi=0, uint8_t mmec=0);
   bool send_ulnastransport(uint16_t rnti, srslte::byte_buffer_t *pdu);
@@ -137,6 +140,7 @@ private:
   bool send_initial_ctxt_setup_failure(uint16_t rnti);
   bool send_erab_setup_response(uint16_t rnti, LIBLTE_S1AP_MESSAGE_E_RABSETUPRESPONSE_STRUCT *res_);
   //bool send_ue_capabilities(uint16_t rnti, LIBLTE_RRC_UE_EUTRA_CAPABILITY_STRUCT *caps)
+  bool send_pathswitchrequest(uint16_t rnti, uint32_t SourceMME_UE_S1AP_ID);
 
   bool        find_mme_ue_id(uint32_t mme_ue_id, uint16_t *rnti, uint32_t *enb_ue_id);
   std::string get_cause(LIBLTE_S1AP_CAUSE_STRUCT *c);

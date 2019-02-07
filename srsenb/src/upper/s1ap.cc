@@ -28,6 +28,7 @@
 #include "srsenb/hdr/upper/common_enb.h"
 #include "srslte/common/bcd_helpers.h"
 #include "srslte/common/int_helpers.h"
+#include "srsenb/hdr/upper/x2ap.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -43,9 +44,10 @@ using srslte::uint32_to_uint8;
 
 namespace srsenb{
 
-bool s1ap::init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, srslte::log *s1ap_log_)
+bool s1ap::init(s1ap_args_t args_, rrc_interface_s1ap *rrc_, x2ap_interface_s1ap *x2ap_, srslte::log *s1ap_log_)
 {
   rrc = rrc_;
+  x2ap = x2ap_;
   args = args_;
   s1ap_log = s1ap_log_;
 
@@ -97,7 +99,7 @@ void s1ap::run_thread()
     s1ap_log->error("Fatal Error: Couldn't allocate buffer in s1ap::run_thread().\n");
     return;
   }
-
+  printf("S1 pdu size: %d\n", sizeof(LIBLTE_S1AP_S1AP_PDU_STRUCT));
   uint32_t sz = SRSLTE_MAX_BUFFER_SIZE_BYTES - SRSLTE_BUFFER_HEADER_OFFSET;
   running = true;
 
@@ -433,6 +435,8 @@ bool s1ap::handle_successfuloutcome(LIBLTE_S1AP_SUCCESSFULOUTCOME_STRUCT *msg)
   switch(msg->choice_type) {
   case LIBLTE_S1AP_SUCCESSFULOUTCOME_CHOICE_S1SETUPRESPONSE:
     return handle_s1setupresponse(&msg->choice.S1SetupResponse);
+  case LIBLTE_S1AP_SUCCESSFULOUTCOME_CHOICE_PATHSWITCHREQUESTACKNOWLEDGE:
+    return handle_pathswitchresponse(&msg->choice.PathSwitchRequestAcknowledge);
   default:
     s1ap_log->error("Unhandled successful outcome message: %s\n", liblte_s1ap_successfuloutcome_choice_text[msg->choice_type]);
   }
@@ -512,6 +516,17 @@ bool s1ap::handle_initialctxtsetuprequest(LIBLTE_S1AP_MESSAGE_INITIALCONTEXTSETU
   if(!rrc->setup_ue_ctxt(rnti, msg)) {
     return false;
   }
+
+  return true;
+}
+
+// add by cz
+bool s1ap::handle_pathswitchresponse(LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUESTACKNOWLEDGE_STRUCT *msg)
+{
+  s1ap_log->info("Received PathSwitchResponse\n");
+
+  // todo: use x1ap to release resource
+  x2ap->send_uecontextrelease(msg);
 
   return true;
 }
@@ -969,6 +984,65 @@ bool s1ap::send_initial_ctxt_setup_failure(uint16_t rnti)
 
   return true;
 }
+
+// add by cz
+// need to add in s1ap.h, x2ap.cc, interface.cc
+bool s1ap::send_pathswitchrequest(uint16_t rnti, uint32_t SourceMME_UE_S1AP_ID)
+{
+  if(!mme_connected) {
+    return false;
+  }
+  srslte::byte_buffer_t msg;
+
+  LIBLTE_S1AP_S1AP_PDU_STRUCT tx_pdu;
+  tx_pdu.ext          = false;
+  tx_pdu.choice_type  = LIBLTE_S1AP_S1AP_PDU_CHOICE_INITIATINGMESSAGE;
+
+  LIBLTE_S1AP_INITIATINGMESSAGE_STRUCT *init = &tx_pdu.choice.initiatingMessage;
+  init->procedureCode = LIBLTE_S1AP_PROC_ID_PATHSWITCHREQUEST;
+  init->choice_type   = LIBLTE_S1AP_INITIATINGMESSAGE_CHOICE_PATHSWITCHREQUEST;
+
+  LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUEST_STRUCT *pathswitch = &init->choice.PathSwitchRequest;
+  pathswitch->ext                                = false;
+  pathswitch->CSG_Id_present = false;
+  pathswitch->CellAccessMode_present = false;
+  pathswitch->SourceMME_GUMMEI_present = false;
+  pathswitch->CSGMembershipStatus_present = false;
+  pathswitch->Tunnel_Information_for_BBF_present = false;
+  pathswitch->LHN_ID_present = false;
+
+  pathswitch->eNB_UE_S1AP_ID.ENB_UE_S1AP_ID             = ue_ctxt_map[rnti].eNB_UE_S1AP_ID;
+
+  // TAI
+  memcpy(&pathswitch->TAI, &tai, sizeof(LIBLTE_S1AP_TAI_STRUCT));
+
+  // EUTRAN_CGI
+  memcpy(&pathswitch->EUTRAN_CGI, &eutran_cgi, sizeof(LIBLTE_S1AP_EUTRAN_CGI_STRUCT));
+
+  pathswitch->SourceMME_UE_S1AP_ID.MME_UE_S1AP_ID = SourceMME_UE_S1AP_ID;
+
+  pathswitch->UESecurityCapabilities.ext = false;
+
+  // todo : fill those
+  // typedef struct{
+  //   LIBLTE_S1AP_E_RABTOBESWITCHEDDLLIST_STRUCT                   E_RABToBeSwitchedDLList;
+  //   LIBLTE_S1AP_UESECURITYCAPABILITIES_STRUCT                    UESecurityCapabilities;
+  // }LIBLTE_S1AP_MESSAGE_PATHSWITCHREQUEST_STRUCT;
+
+  liblte_s1ap_pack_s1ap_pdu(&tx_pdu, (LIBLTE_BYTE_MSG_STRUCT*)&msg);
+  s1ap_log->info_hex(msg.msg, msg.N_bytes, "Sending PathSwitchRequest for RNTI:0x%x", rnti);
+
+  ssize_t n_sent = sctp_sendmsg(socket_fd, msg.msg, msg.N_bytes,
+                                (struct sockaddr*)&mme_addr, sizeof(struct sockaddr_in),
+                                htonl(PPID), 0, ue_ctxt_map[rnti].stream_id, 0, 0);
+  if(n_sent == -1) {
+    s1ap_log->error("Failed to send PathSwitchRequest for RNTI:0x%x\n", rnti);
+    return false;
+  }
+
+  return true;
+}
+
 
 
 //bool s1ap::send_ue_capabilities(uint16_t rnti, LIBLTE_RRC_UE_EUTRA_CAPABILITY_STRUCT *caps)

@@ -178,6 +178,44 @@ static rf_dev_t dev_soapy = {
 
 #endif
 
+#ifdef ENABLE_YUNSDR
+
+#include "rf_yunsdr_imp.h"
+
+static rf_dev_t dev_yunsdr = {
+  "yunsdr",
+  rf_yunsdr_devname,
+  rf_yunsdr_rx_wait_lo_locked,
+  rf_yunsdr_start_rx_stream,
+  rf_yunsdr_stop_rx_stream,
+  rf_yunsdr_flush_buffer,
+  rf_yunsdr_has_rssi,
+  rf_yunsdr_get_rssi,
+  rf_yunsdr_suppress_stdout,
+  rf_yunsdr_register_error_handler,
+  rf_yunsdr_open,
+  rf_yunsdr_open_multi,
+  rf_yunsdr_close,
+  rf_yunsdr_set_master_clock_rate,
+  rf_yunsdr_is_master_clock_dynamic,
+  rf_yunsdr_set_rx_srate,
+  rf_yunsdr_set_rx_gain,
+  rf_yunsdr_set_tx_gain,
+  rf_yunsdr_get_rx_gain,
+  rf_yunsdr_get_tx_gain,
+  rf_yunsdr_get_info, 
+  rf_yunsdr_set_rx_freq,
+  rf_yunsdr_set_tx_srate,
+  rf_yunsdr_set_tx_freq,
+  rf_yunsdr_get_time,
+  rf_yunsdr_recv_with_time,
+  rf_yunsdr_recv_with_time_multi,
+  rf_yunsdr_send_timed,
+  .srslte_rf_send_timed_multi = rf_yunsdr_send_timed_multi,
+};
+
+#endif
+
 //#define ENABLE_DUMMY_DEV
 
 #ifdef ENABLE_DUMMY_DEV
@@ -228,6 +266,10 @@ static rf_dev_t *available_devices[] = {
 #ifdef ENABLE_SOAPYSDR
   &dev_soapy,
 #endif
+#ifdef ENABLE_YUNSDR
+  &dev_yunsdr,
+#endif
+
 #ifdef ENABLE_BLADERF
   &dev_blade,  
 #endif
